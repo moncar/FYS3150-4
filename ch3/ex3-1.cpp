@@ -3,13 +3,14 @@
 // Thu 13-08-22
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
-double fFirstDeriv(double fX, double (*fFuncIn)(double) )
+double fFirstDeriv(double fX, double h, double (*fFuncIn)(double) )
 {
-   double fRes = (*fFuncIn)(fX);
-   fRes *= 3E-06;
+   double fRes;
+   fRes = ((*fFuncIn)(fX + h) - (*fFuncIn)(fX))/h; 
    cout << fRes << endl;
    return fRes;
 }
@@ -17,7 +18,7 @@ double fFirstDeriv(double fX, double (*fFuncIn)(double) )
 double fTestFunc(double fX)
 {
    float fOut;
-   fOut = (fX + 3)*2.0;
+   fOut = (fX*fX + 3)*2.0;
    cout << fOut << endl;
    return fOut;
 }
@@ -25,9 +26,9 @@ double fTestFunc(double fX)
 int main() 
 {
    //double fRes1 = fFirst_deriv(fTestFunc(2.0));
-   double fRes1;
-   fRes1 = fFirstDeriv(2.0, fTestFunc);
+   double h, fRes1;
+   h = 0.01;
+   fRes1 = fFirstDeriv(2.0, h, fTestFunc);
    //fRes1 = fFirstDeriv(fTestFunc(2.0));
-   cout << fRes1 << endl;
    return 0;
 }
