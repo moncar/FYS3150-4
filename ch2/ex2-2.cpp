@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int main()
+int main22()
 {
    // Summing 1/n for
    //    a) n=1 to N
@@ -14,7 +14,8 @@ int main()
    
    int N;
    
-   float fSumUp, fSumDown;
+   float fSumUp = 0.0f;
+   float fSumDown = 0.0f;
 
    cout << "Enter number of iterations N=";
    cin >> N;
@@ -22,16 +23,17 @@ int main()
    // a) Summing UP
    
    for (int n=1; n<N+1; n++) {
-      fSumUp += 1./(double)n;
+      fSumUp += 1./(float)n;
    }
    cout << "Sum up: s_up = " << fSumUp << endl;
 
    // b) Summing DOWN
 
    for (int n=N; n>0; n--) {
-      fSumDown += 1./(double)n;
+      fSumDown += 1./(float)n;
    }
    cout << "Sum down: s_down = " << fSumDown << endl;
-
+   char temp;
+   cin >> temp;
    return 0;
 }

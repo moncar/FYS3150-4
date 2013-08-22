@@ -119,7 +119,7 @@ int nConverter(double fFloat_in, int n)
    return n;
 }
 
-int main()
+int main21()
 {
    int n, nTmp,nTmp2;
    double fChosenValue, fChosenValueDecimals;
