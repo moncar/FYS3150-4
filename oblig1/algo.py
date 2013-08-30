@@ -6,6 +6,7 @@
 #   with analytical solution
 
 from numpy import *
+import matplotlib.pylab as plt
 
 N = 300;          # no iterations
 h = float(1-0)/N  # step size
@@ -29,6 +30,27 @@ def analy_func(x):
 srcfunc = vectorize(srcfunc)
 analy_func = vectorize(analy_func)
 
-bm = srcfunc(x)
+bm = h**2 * srcfunc(x)
 sol= analy_func(x)
+
+# Implement algorithm
+bmm[0]   = bm[0]
+bmmm[N-1]= bmm[N-1]
+
+for i in xrange(1,N-1):
+   bmm[i]  = bm[i] + (float(i-1)/i) * bm[i-1]
+for i in xrange(N-2, 0):
+   bmmm[i] = bmm[i] + float(i+1)/(i+2) * bmm[i+1]
+
+# Normalise
+for i in xrange(0,N-1):
+   bmmm[i] = float(i)/(i+1) * bmm[i]
+
+
+plt.figure(0)
+plt.plot(x,sol)
+plt.figure(1)
+plt.plot(x,bmmm)
+plt.title('Analytical')
+plt.show()
 
