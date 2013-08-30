@@ -49,8 +49,9 @@ for i in xrange(0,N-1):
 
 plt.figure(0)
 plt.plot(x,sol)
+plt.title('Analytical')
 plt.figure(1)
 plt.plot(x,bmmm)
-plt.title('Analytical')
+plt.title('Numerical')
 plt.show()
 
