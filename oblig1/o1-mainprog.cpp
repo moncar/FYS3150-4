@@ -14,9 +14,7 @@
 using namespace std;
 
 // ASSIGN FUNCTIONS AND DATATYPES
-// int 
 
-// TO DO -> replace functions with INLINE FUNCTIONS
 double fSourceFunc(double x) {
     return ( 100.0 * exp(-10. * x) );
 }
@@ -37,18 +35,18 @@ int main(int argc, char* argv[]) {
     if (!argv[1]) { N = 100; }
     else { N =  atoi(argv[1]); }
     // Set limits and step size
-    const double fXmin = 0.0;
-    const double fXmax = 1.0;
+    const double fXmin = 0.001;
+    const double fXmax = 0.999;
     const double fHstep= (fXmax - fXmin)/double(N);
 
-    double *fX= new double[N];
-    double *fEstX= new double[N];
-    double *fCorrX= new double[N];
-    double *fErr= new double[N];
+    double *fX= new double[N];     // array: x-values
+    double *fEstX= new double[N];   // array: source-func(x) -> SOLVER
+    double *fCorrX= new double[N];  // array: answer(x)
+    double *fErr= new double[N];    // array: to hold difference Est vs Corr
     
     for (int iii=0; iii<N; iii++) {
         fX[iii]    = fXmin + iii*fHstep;
-        fEstX[iii] = fSourceFunc(fX[iii]);      // to be sent to SOLVER
+        fEstX[iii] = pow(fHstep,2) * fSourceFunc(fX[iii]); // h^2 * f(x) 
         fCorrX[iii]= fSolutionFunc(fX[iii]);
     }
 
@@ -62,12 +60,47 @@ int main(int argc, char* argv[]) {
     for (int iii=0; iii<N; iii++) {
         fErr[iii] = fRelError(fCorrX[iii], fEstX[iii]);
         
-        cout << fX[iii] << "\t" << fCorrX[iii] << "\t" << fEstX[iii] << "\t" << fErr[iii] << endl;
+//        cout << fX[iii] << "\t" << fCorrX[iii] << "\t" << fEstX[iii] << "\t" << fErr[iii] << endl;
     }
+
+
+
+    // PART 2:
+    // LU DECOMPOSITIONING
+    
+    double *fEstX2= new double[N];  // array: source-func(x) -> LU decomp
+   
+    // Initialise array 
+    for (int iii=0; iii<N; iii++) {
+        fEstX2[iii] = pow(fHstep,2) * fSourceFunc(fX[iii]); // h^2 * f(x) 
+    }
+
+    // Apply LU decompositioning of differentiation tridiag matrix
+    // which is calculated in LUmethod,
+    // solve for x in "Ax = b" where A=LU and b=fEstX2
+    // Returns x in place of fEstX2. 
+
+    LUmethod(N, fEstX2);
+
+    // Save result to file
+    if (argc <= 2) { 
+        cout << "ERROR! Missing output file for LU decomp result" << endl;
+        exit(1);
+    }
+    else {
+        outputFile(N, fX, fEstX2, &argv[2]);
+    }
+    
+    // PART 3:
+    // Matrix operations
 
     delete [] fX;       // housekeeping
     delete [] fEstX;
+    delete [] fEstX2;
     delete [] fCorrX;
     delete [] fErr;
+
+
+
 }
 
