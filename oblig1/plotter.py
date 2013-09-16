@@ -24,6 +24,14 @@ N1 = len(data1[:,0])
 N2 = len(data2[:,0])
 N3 = len(data3[:,0])
 
+# Find max. error value
+# data[x  true u(x)   est v(x)   error]
+for data in [data1, data2, data3]:
+    print("Max. error for N=%6g is:%g" % (len(data[:,0]), max(data[:,3])))
+    print("Min. error for N=%6g is:%g" % (len(data[:,0]), min(data[:,3])))
+
+
+
 fig = plt.figure()
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -43,6 +51,8 @@ p33, = ax2.plot(data3[:,0],data3[:,3], linestyle='--')
 ax1.set_xlabel('x')
 ax1.set_ylabel('Estimated derivative')
 ax2.set_ylabel(r'\log_{10}$(Rel. error)')
+ax1.set_ylim([0, 2])
+ax2.set_ylim([-3, 5])
 ax1.grid()
 ax2.grid()
 plt.legend([p11,p12,p13,p2,p31,p32,p33], \
