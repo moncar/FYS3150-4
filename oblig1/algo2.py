@@ -8,7 +8,7 @@
 from numpy import *
 import matplotlib.pylab as plt
 
-N = 100;          # no iterations
+N = 10;          # no iterations
 h = float(1-0)/N  # step size
 
 x = linspace(0,1,N)
