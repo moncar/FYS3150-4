@@ -11,8 +11,8 @@ using namespace arma;
 
 void jacobiRotation(arma::mat &A, int N) {
     // Takes a sym. NxN matrix A and rotates it
-    
-    double eps  = 1e-3;     // precision
+        
+    double eps  = 1e-6;     // precision
     int n       = 0;        // counter
     double offDiag=eps+1;
     
@@ -20,16 +20,26 @@ void jacobiRotation(arma::mat &A, int N) {
     mat Aoff =  A; //zeros<mat>(N,N);
     //Aoff.diag(+1) = A.diag(+1);
     //Aoff.diag(-1) = A.diag(-1);   // omitting main diagonal
+     
+    // Matrix to hold absolute values
+    mat AoffAbs = A;
 
-    while (offDiag > eps && n < N*N) {
-        cout << n << endl;
+    while (offDiag > eps && n < N*N*N) {
+        cout << " ========= iteration: ===========" << n << endl;
 
         Aoff = A;
         Aoff.diag() = zeros<vec>(N);
 
         uword rowN; uword colN;
         int k; int l;
-        double maxA = Aoff.max(rowN,colN);
+        AoffAbs = abs(Aoff);
+        double maxA = AoffAbs.max(rowN, colN);
+        //double maxA = Aoff.max(rowN,colN) > abs(Aoff.min(rowN,colN)) ? \
+                             Aoff.max(rowN,colN) : abs(Aoff.min(rowN,colN));
+
+        //A.print();
+        cout << "\n" << endl;
+        //Aoff.print();
 
         // Find sum over all offdiagonal elements,
         // % operator: elementwise multiplication
@@ -37,57 +47,59 @@ void jacobiRotation(arma::mat &A, int N) {
         offDiag = sqrt(accu(Aoff % Aoff));
         cout << "Offdiag = " << offDiag << endl;
 
-        if (maxA <= 0) {
-            // first run -> chose random index,
-            k = 0; l = 1;
-            cout << A(k,l) << " at " <<  k << l << endl;
-        }
-        else {
-            // find 1 < k < l < n
-            k = rowN < colN ? rowN : colN;
-            l = rowN > colN ? rowN : colN;
-            cout << k << l << endl;
-            cout << maxA << " at A(" << rowN+1<< ","<< colN+1<< ")" << endl;
-        }
+        // find 1 < k < l < n
+        k = rowN; //rowN < colN ? rowN : colN;
+        l = colN; //rowN > colN ? rowN : colN;
+        //cout << "k=" <<  k << " l=" << l << endl;
+        cout << maxA << " at A(" << rowN+1<< ","<< colN+1<< ")" << endl;
 
 
         // find angle theta
-
+        //cout << "A(l,l)=" << A(l,l) << " A(k,k)=" << A(k,k) << " A(k,l)=" << A(k,l) << endl;
+        //cout << "Finding angle theta: printing tanTheta and cot2Theta" << endl;
+          //
         double cot2Theta = (A(l,l) - A(k,k))/(2*A(k,l));
-        
-        double tanTheta  = min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
+
+        double tanTheta  = min( (-cot2Theta + sqrt(1+ cot2Theta*cot2Theta)) \
+                                            -cot2Theta - sqrt(1+ cot2Theta*cot2Theta) );
+              
+              //= min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
 
         cout << tanTheta << endl;
         cout << cot2Theta << "\t" << sqrt(1+ pow(cot2Theta,2)) << endl;
-        
-        // find: cos(theta) and sin(theta) from tan(theta)
 
+        // find: cos(theta) and sin(theta) from tan(theta)
         double cosTheta  = 1./ (sqrt( 1 + pow(tanTheta,2)));
         double sinTheta  = tanTheta * cosTheta;
 
-        
+
         // Apply rotation
-        
-       double Akk = A(k,k);
-       double All = A(l,l);
-       double Akl = A(k,l);
-       for (int j = 0; j<N; j++) {
-           double Ajk = A(j,k);
-           double Ajl = A(j,l);
-           if (j != k && j != l) {
-               A(j,k) = Ajk * cosTheta - Ajl * sinTheta;
-               A(j,l) = Ajl * cosTheta + Ajk * sinTheta;
+        double Akk = A(k,k);
+        double All = A(l,l);
+        double Akl = A(k,l);
+        for (int j = 0; j<N; j++) {
+            double Ajk = A(j,k);
+            double Ajl = A(j,l);
+            if (j != k && j != l) {
+                //cout << j<<k<<l << endl;
+                A(j,k) = Ajk * cosTheta - Ajl * sinTheta;
+                A(j,l) = Ajl * cosTheta + Ajk * sinTheta;
+                //cout << "A(j,k)=" << A(j,k) << endl;
+                //cout << "A(j,l)=" << A(j,l) << endl;
            }}
 
-       A(k,k) = Akk*cosTheta*cosTheta \
+        A(k,k) = Akk*cosTheta*cosTheta \
                 - 2*Akl * cosTheta * sinTheta \
                 +   All * sinTheta * sinTheta;
-       A(l,l) = All * cosTheta*cosTheta \
+        //cout << "A(k,k)=" << A(k,k) << endl;
+        A(l,l) = All * cosTheta*cosTheta \
                 + 2*Akl * cosTheta * sinTheta \
                 +   Akk * sinTheta * sinTheta;
-       A(k,l) = (Akk - All) * cosTheta * sinTheta \
+        //cout <<  "A(l,l)=" <<A(l,l) << endl;
+        A(k,l) = (Akk - All) * cosTheta * sinTheta \
                 +   Akl * (cosTheta * cosTheta - sinTheta *sinTheta);
-       
+        //cout <<  "A(k,l)=" <<A(k,l) << endl;
+
         n += 1;
     }
 }
