@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
     // Physics: potential of the harmonic oscillator V(r)
     // Potential: V(rho) = rho^2
-    int N = 5;
+    int N = 25;
     double fRho_min = 0.0;
     double fRho_max = 10.0; // 1./fAlpha * r    // 10 alphas
     double fRho_h   = (fRho_max - fRho_min)/N;
@@ -55,7 +55,11 @@ int main(int argc, char* argv[]) {
 
     A.print();
 
-    cout << &A << endl;
+    // Eigenvalues are on the diagonal
+    vec eig = diagvec(A);
+
+    //cout << &A << endl;
+    cout << sort(eig) << endl;
 
     return 0;
 
