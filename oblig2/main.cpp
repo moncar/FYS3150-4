@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
     // Physics: potential of the harmonic oscillator V(r)
     // Potential: V(rho) = rho^2
-    int N = 25;
+    int N = 100;
     double fRho_min = 0.0;
     double fRho_max = 10.0; // 1./fAlpha * r    // 10 alphas
     double fRho_h   = (fRho_max - fRho_min)/N;
@@ -31,18 +31,17 @@ int main(int argc, char* argv[]) {
     //double fAlpha   = pow((pow(hbar, 2)/(m_e * fK)), 1./4);
     
     // Set up a potential, V and diagonal elemnts d
-    vec fV(N);
-    vec fD(N);
+    vec fV(N);  // potential
+    vec fD(N);  // diagonal
     
     for (int i=0; i<N; i++) {
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
-        fV[i] = pow((fRho_min + i*fRho_h), 2);
-        fD[i] = fV[i] + 2.*pow(fRho_h, -2);
+        fV[i] = pow((fRho_min + i*fRho_h), 2);  // potential
+        fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
     // Set up a tridiagonal matrix
-
     mat A       = zeros<mat>(N,N);
 
     A.diag()    = fD;
@@ -50,6 +49,7 @@ int main(int argc, char* argv[]) {
     A.diag(-1)  -= pow(fRho_h, -2.); 
 
     A.print();
+
     // Apply operations on A to find eigenvalues
     jacobiRotation(A, N);
 
