@@ -1,0 +1,271 @@
+\documentclass[a4paper,11pt]{article}
+
+
+%\documentclass[journal = ancham]{achemso}
+%\setkeys{acs}{useutils = true}
+%\usepackage{fullpage}
+%\usepackage{natbib}
+\pretolerance=2000
+\tolerance=6000
+\hbadness=6000
+%\usepackage[landscape]{geometry}
+%\usepackage{pxfonts}
+%\usepackage{cmbright}
+%\usepackage[varg]{txfonts}
+%\usepackage{mathptmx}
+%\usepackage{tgtermes}
+\usepackage[utf8]{inputenc}
+%\usepackage{fouriernc}
+%\usepackage[adobe-utopia]{mathdesign}
+\usepackage[T1]{fontenc}
+%\usepackage[norsk]{babel}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+%\usepackage[version=3]{mhchem}
+\usepackage{pstricks}
+\usepackage[font=small,labelfont=bf,tableposition=below]{caption}
+\usepackage{subfig}
+%\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{sverb}
+%\usepackage{microtype}
+%\usepackage{enumerate}
+\usepackage{enumitem}
+%\usepackage{lineno}
+%\usepackage{booktabs}
+%\usepackage{changepage}
+%\usepackage[flushleft]{threeparttable}
+\usepackage{pdfpages}
+
+\floatsetup[table]{capposition=top}
+\setcounter{secnumdepth}{0}
+
+\newcommand{\tr}{\, \text{tr}\,}
+\newcommand{\diff}{\ensuremath{\; \text{d}}}
+\newcommand{\UA}{\ensuremath{_{\uparrow}}}
+\newcommand{\RA}{\ensuremath{_{\rightarrow}}}
+\newcommand{\QED}{\left\{ \hfill{\textbf{QED}} \right\}}
+
+
+\date{\today}
+\title{Numerical differentiation\\ \small{Project 1 -- FYS4150}}
+\author{Marius Berge Eide \\
+\texttt{mariusei@astro.uio.no}}
+
+
+\begin{document}
+
+
+\onecolumn
+\maketitle{}
+
+
+\section{Introduction}
+    This report investigates a numerical approach to second order derivation using a tridiagonal matrix, and examines the possibility for doing simplifications in the solution method.
+
+\section{Methods}
+\subsection{Poisson equation}
+    The Poisson equation describes the electrostatic potential $\Phi$ set up from a charge distribution $\rho(\mathbf{r})$, 
+    \begin{equation}
+        \nabla^2 \Phi = - 4 \pi \rho(\mathbf{r}) 
+        \label{eq:poisson}
+    \end{equation}
+    which can be reduced to a one-dimensional case if the potential $\Phi$ and the distribution $\rho(\mathbf{r})$ has spherical symmetry, yielding
+    \[
+        \frac{1}{r^2} \frac{d}{dr} \left( r^2 \frac{d^2 \Phi}{dr} \right)
+         = - 4 \pi \rho(\mathbf{r}).
+    \]
+
+    Substituting $\Phi(r) = \phi(r)/r$, the above equation is reduced to
+    \begin{equation}
+        \frac{1}{r} \frac{d^2 \phi}{dr^2} = - 4 \pi \rho(r).
+        \label{eq:reduced_poisson}
+    \end{equation}
+
+\subsection{Solving the one-dimensional Poisson equation}
+    In this report, a rewrite of the Poisson equation is solved. The approximation is letting $\phi \rightarrow u$ and $r \rightarrow x$, which gives (omitting the factor $1/r^2$ in \ref{eq:reduced_poisson})
+    \[ -u''(x) = f(x). \]
+
+    The Dirchlet boundary conditions are applied, $x \in (0,1)$ and $u(0) = u(1) = 0$, and the second order derivative of $u$ is approached with
+    \begin{equation}
+    -\frac{v_{i+1} + v_{i-1} - 2v_i}{h^2} = f_i \quad {\rm for}\, i=1,\cdots,n,
+        \label{eq:numderiv}
+    \end{equation}
+    where an implicit transition was made from the continuous real valued set of numbers ${u_i}$ to the discretised set ${v_i}$ with step length $h$ defined as $h = 1/(n+1)$, and $f_i = f(x_i)$.
+
+    This equation can be rewritten as a set of linear equations
+    \[ A\mathbf{x} = \tilde{\mathbf{b}} \]
+    where the $n\times n$ matrix A can be found. Rewriting eq. (\ref{eq:numderiv}),
+    \begin{equation}
+        -v_{i-1} + 2v_i -v_{i+1} = h^2 f_i
+        \label{eq:rewrite}
+    \end{equation}
+    we have an expression which must hold for all $i=1,\cdots,n$. This can be tested, checking first the boundaries and then for a random $i=j$ and $j+1$, for $j\neq n,0$.
+
+    \begin{itemize}
+        \item For $i=1$, we have $h^2 f_i = -0 + 2v_1 -v_2$.
+
+        \item For $i=n$, we have $h^2 f_n = -v_{n-1} + 2v_n -0 $.
+
+        \item For $i=1$, the calculation would correspond to the vector operation
+    \[ \mathbf{a}_1^T \mathbf{v} = h^2 f_1 \]
+    where $\mathbf{a}_1 = [2,-1,0,\cdots,0]$ and $\mathbf{v} = [v_1, v_2, \cdots, v_n ]$, while, for $i=n$, we have  $\mathbf{a}_n^T \mathbf{v} = h^2 f_n$ where $\mathbf{a}_n = [0,0,\cdots,-1,2]$ and $\mathbf{v} = [v_1, v_2, \cdots, v_n ]$.
+
+        \item For $i=j$, the vector operation must be $  \mathbf{a}_j^T \mathbf{v} = h^2 f_j$  where
+            \begin{itemize}
+                \item $\mathbf{a}_j = [0,0,\cdots,-1,2,-1,\cdots,0]$
+                \item $\mathbf{v}   = [v_1,v_2,\cdots,v_n]$.
+            \end{itemize}
+        \item The relation must also hold for $i=j+1$, giving the vector operation $\mathbf{a}_{j+1}^T \mathbf{v} = h^2 f_{j+1}$ where
+            \begin{itemize}
+                \item $\mathbf{a}_{j+1} = [0,0,\cdots,0,-1,2,-1,\cdots,0]$
+            \end{itemize}
+            and $\mathbf{v}$ the same as in the other cases. 
+    \end{itemize}
+
+    Having shown that the relation holds for all $i=1,\cdots,n$, we can write the right hand side of eq. (\ref{eq:rewrite}), $h^2 f_i$ for all $i=1,\cdots,n$, as 
+    \[ h^2\tilde{\mathbf{b}} \]
+    where $\tilde{\mathbf{b}} = [f_1,f_2,\cdots,f_n]$, and the left hand side can be written as 
+    \[ [\mathbf{a}_1^T,\mathbf{a}_2^T,\cdots,\mathbf{a}_n^T] \mathbf{v} = [\mathbf{a}_1\,\mathbf{a}_2 \, \cdots \, \mathbf{a}_n] \mathbf{v} = A\mathbf{v}. \]
+
+    The resulting matrix $A$ is a tridiagonal one, where $A_{ij} = 2$ for $i=j$, and $A_{ij} = -1$ for $|i-j|<2$ and $i\neq j$.
+
+    \subsection{Numerical implementation}
+    To test the derivation algorithm, the source function ($f(x)$ in eq.~(\ref{eq:rewrite})) is set
+    \[ f(x) = 100 e^{-10x} \]
+    with solution
+    \[ u(x) = 1 - \left( 1 - e^{-10} \right) x - e^{-10x} \]
+    which results in $-f(x)$ if differentiated twice, and hence is a valid solution to eq.~(\ref{eq:rewrite}).
+
+    The standard method for solving for an unknown $\mathbf{v}$ in $A\mathbf{v} = \tilde{\mathbf{b}}$ is to apply Gaussian elimination on the augmented matrix $[A \, | \, \tilde{\mathbf{b}}]$. The scheme consists of forward elimination, backward substitution and normalisation.
+    
+    The first step is to forward eliminate the leftmost element $A_{i1}$ from the $n-1$ lower rows using the uppermost element $A_{11}$. When finished, the procedure is repeated for the next column, $A_{i2}$ using the first element in the second row, $A_{22}$. Each forward elimination consists of the subtraction of the row $i-1$, multiplied by a factor $d_i$, from row $i$ -- this changes the elements of $\tilde{\mathbf{b}}$. 
+
+    When the elimination has reached the $n$-th column of the $n \times n+1$ augmented matrix $[A' \,|\, \tilde{\mathbf{b}'}]$, there are now no remaining rows where the leftmost element can be removed by forward substitution. The next step is to substitute backwards from the bottom, using the rightmost non-zero element in each row and subtracting this from the preceding rows, cancelling their elements. This backward substitution is a row operation, meaning the previous $\tilde{b}_{i+1}'$ multiplied by a factor $d_i'$ is subtracted from the now changed (from the forward elimination) $\tilde{b}_i'$.
+
+    The final step is to normalise the remaining matrix -- this makes the leading diagonal elements in the reduced $A''$ become one. Each row is multiplied by the factor $d_i'' = 1/A_{ii}''$ where $A''$ is the reduced matrix in $[A \,|\, \tilde{\mathbf{b}} ] \rightarrow [A' \,|\, \tilde{\mathbf{b}}' ] \rightarrow [A'' \,|\, \tilde{\mathbf{b}}'' ]$.  
+
+    \subsection{Simplification}
+    The desired outcome of the Gaussian elimination of the augmented matrix $[A \,|\, \tilde{\mathbf{b}} ]$ is $[I \, | \, \mathbf{v}]$ where $I$ is the identity matrix and $\mathbf{v}$ is the solution of $A\mathbf{v} = \tilde{\mathbf{b}}$. If the given set of equations has a solution (not infinitely many solutions nor no solution), we are left with the desired outcome. Assuming this holds for this differentiation scheme, it is possible to discard the matrix $A$ altogether and consider only the row operations acting on $\tilde{\mathbf{b}}$. 
+
+    The question is then---what are the factors $d_i$, $d_i'$ and $d_i''$ acting on each row as we are iterating forward, backward and then normalises? 
+
+    The tridiagonal matrix $A$ can be expressed as
+    \[
+        A = \begin{bmatrix}
+            b_1     & c_1 & 0       & \cdots & \cdots & \cdots \\
+            a_2     & b_2 & c_2     & \cdots & \cdots & \cdots \\
+            0       & a_3 & b_3     & c_3    & 0      & \cdots \\
+                   &\cdots& \cdots  & \cdots & \cdots & \vdots \\
+                    &     &         & a_{n-2}& b_{n-1}& c_{n-1}\\
+                    &     &         &        & a_n    & b_n
+            \end{bmatrix}
+    \]
+    where, in our case, all $\{b_i\} = 2$, $\{a_i\} = \{c_i\} = -1$ for all integers $i=1,2,\dots,n$. 
+    
+    In the forward substitution scheme we need to multiply the row, including $a_{i+1}$, $b_{i+1}$, $c_{i+2}$ and $\tilde{b}_{i+1}$ in the augmented matrix $[A \, | \, \tilde{\mathbf{b}} ]$, with the factor $a_{i+1}/b_i$, which makes $b_2' = b_2 - a_2/b_1 \cdot c_1$.
+
+    As $A$ is a tridiagonal matrix, all $a_i$ will become zero with the forward substitution scheme. The factor $d_i$ being applied on each row becomes thus the inverse of the iterated $b_i'$, with $b_1' = b_1$. The behaviour of the $b_i'$ is
+    \[ b_i' = b_i - \frac{a_i}{b_{i-1} - \frac{a_{i-1}}{b_{i-2} - \frac{a_{i-2}}{b_{i-3} - \dots} c_{i-2}  } c_{i-1} } c_i \]
+    which is a continued fraction.
+
+    In the case where $\{b_i\} = 2$, $\{a_i\} = \{c_i\} = -1$, we have
+    \[ b_i' = 2 - \frac{-1}{2 - \frac{-1}{2 - \frac{-1}{2 - \dots}(-1)}(-1)}(-1) \]
+    which, for $i=1$,
+    \[ b_1' = b_1 = 2 \]
+    and for $i=2$,
+    \[ b_2' = b_2 - \frac{a_2}{b_1} c_2 = 2 - \frac{-1}{2}(-1) = \frac{3}{2} \]
+    and for higher $i$-s, 
+    \[ b_i' = \frac{i+1}{i} \]
+    which holds, as the continued fraction cannot be infinite---the lowest $i$ possible is $1$, and the highest is $n$.
+
+    The factor $d_i$ is $a_i/b_{i-1}$, in our case,
+    \[ d_i = -i/(i+1). \]
+
+    Backward substitution gives that the row below the current row is multiplied by a factor $d_i'$ and subtracted. As the matrix is tridiagonal, this process only has to occur once for each row---in the standard Gaussian elimination scheme, every preceding row had to be subtracted lowermost row holding the pivot element. 
+
+    As it was deduced that $b_i' = (i+1)/i$, the factor which is applied onto row $i+1$ which is then subtracted from row $i$ is:
+    \[ d_i' = \frac{c_{i}}{b_{i+1}'} = (-1) \frac{(i+1)}{(i+1) + 1} = -\frac{i+1}{i+2} \]
+
+    The normalisation requires that the pivotal elements of the (from forward elimination and backward substitution) matrix $A''$ which now is on echelon form, becomes 1. As previously stated, this requires that every row is multiplied by the factor $d_i'' = 1/A_{ii}'' = 1/b_i''$. 
+
+    The pivotal elements became $b_i' = (i+1)/i$ following the forward elimination. The backward substitution does not act on the pivotal elements, only on the upper diagonal (all $c_i$ became 0). The normalisation is then the multiplication of each row by
+    \[ d_i'' = \frac{1}{b_i} = \frac{i}{i+1} \]
+
+    The simplification is then to discard the matrix $A$, its representation as the combination of the arrays $a_i$, $b_i$ and $c_i$ and only apply the factors $d$, $d'$ and $d''$ when iterating forward, backward and to normalise the array holding~$\tilde{\mathbf{b}}$. 
+
+\section{Results}
+    The implementation of the algorithm devised under ``Methods'' is available in the file \textrm{functions.cpp} under Github user \textrm{mariusei}\footnote{\url{https://github.com/mariusei/FYS3150/blob/master/oblig1/functions.cpp}}.
+
+   The algorithm requires three floating point operations for the forward substitution, four for the backward elimination and three for the normalisation, ten in total. For three loops, one for $i=1:N-1$, one for $i=N-2:0$ and the last for $i=0:N-1$, gives the total operations to be $3(N-1) + 4(N-1) + 3N = 10N -7$. The algorithm only operates on one array.
+
+    \begin{figure}[htb]
+        \centering
+        \includegraphics[width=0.9\columnwidth]{fig/figure1m.pdf}
+        \caption{Results from implementation of differentiation algorithm applied with a source function $f(x) = 100 e^{-10x}$, which, when applied in Poisson's equations has the solution $u(x) = 1-\left( 1-e^{-10} \right)x - e^{-10x}$, plotted as the dashed, black line. The differentiation was run with $N=10,100,1000$ points, and the errors, calculated as $\log_{10} \left( |(v_i - u_i)/u_i \right)$ are plotted as long dashed lines.}
+        \label{fig:res}
+    \end{figure}
+
+    In figure (\ref{fig:res}), where the differentiation algorithm has been implemented for the source function $f(x) = 100 e^{-10x}$, which, when applied in Poisson's equations has solution $u(x) = 1-\left( 1-e^{-10} \right)x - e^{-10x}$, it can be seen that an increase in the number of iterations, $N$, gives a decrease in overall error. 
+
+    The figure also shows that the error is declining for increasing $x$ for both $N=10,100$, but for $N=1000$, the error increases towards the boundaries. 
+
+    The maximum errors for iterations with $N=10,100,1000,10^4,10^5$, are given in table (\ref{tab:errors}).
+
+    \begin{table}
+        \centering
+        \begin{tabular}{l r r}
+            $N$ & \textbf{Max. error}    & \textbf{Min. error} \\
+            \hline
+            10      &  2.0661   & -0.082 \\
+            $10^2$  &  0.7015   & -1.844 \\
+            $10^3$  & -0.3010   & -2.834 \\
+            $10^4$  & -0.0222   & -2.042 \\
+            $10^5$  & -0.0022   & -2.007 \\
+            $10^6$  & -0.0002   & -2.004 \\
+            \hline
+        \end{tabular}
+        \caption{Relative errors calculated as $\log_{10}\left( |(v_i - u_i)/u_i | \right)$ for different number of iterations. An increased number of iterations decreases the step length. }
+        \label{tab:errors}
+    \end{table}
+
+    Differences in elapsed time when comparing the solution method with a LU-solution scheme can be found in table (\ref{tab:times}).
+
+    \begin{table}
+        \centering
+        \begin{tabular}{l r r}
+            $N$ & \textbf{Tridiagonal} [s]  & \textbf{LU} [s] \\
+            \hline
+            10      & 0 & 0 \\
+            $10^2$  & 0 & 0 \\
+            $10^3$  & 0 & 1 \\
+            $5\times10^3$  & 0 & 220 \\
+            \hline
+        \end{tabular}
+        \caption{Iteration times when solving for $\mathbf{x}$ in $A\mathbf{x} = \mathbf{b}$ using the algorithm tailored for a tridiagonal matrix $A$ and ageneral LU-decompositioning followed by a back substitution. Times are in seconds, measured using C++ header \texttt{time.h}.}
+        \label{tab:times}
+    \end{table}
+
+    Measuring time elapsed when performing matrix multiplication, there is a difference between \textit{row-major} order iterations, and \textit{column-major} order iterations. Time was measured performing these two operations,  on $n\times n$ matrices $B$ and $C$, giving $A = BC$. The Armadillo implemented BLAS-multiplication was also tested.\footnote{\url{https://github.com/mariusei/FYS3150/blob/master/oblig1/memorystrides/memorystrides.cpp}}
+
+    For $N=1000$, row major order multiplication takes 16 seconds, column major order multiplication takes 11 seconds, and Armadillo's implementation uses 0 seconds. 
+
+    \section{Discussion and conclusion}
+    The number of floating point operations is higher than the general metod for solving a tridiagonal matrix. However, this method only operates on one array. Standard Gaussian elimination requires $2n^3/3 + O(n^2)$ floating point operations. LU-decomposition requires $2n^3/3$ floating point operations, and further $n^2$ operations to solve the linear equations.  
+
+    As seen in figure (\ref{fig:res}), increasing the number of iterations (and hence decreasing the step length) reduces the overall error. The error curve for the run with $N=1000$ does however differ from the curves for $N=10,100$, as it increases towards both boundaries (zero and one, which are the Dirchlet boundary conditions).
+
+    When increasing the number of iterations beyond $N=1000$, the maximum error increases. The minimum error also increases, after decreasing for increasing $N$ up to $N=1000$. 
+
+    A likely explanation for the increase in error is loss of precision due to round of errors, the right hand side of eq.~(\ref{eq:rewrite}) has the factor $h^2$, which is a source to instability for very small $h$. 
+
+    As shown in table (\ref{tab:times}), an increase in processing time can be seen using other another solution method -- in this case LU decompositioning and back substitution. The maximum number of iterations was chosen to be $N=5000$, as an apparent exponential growth of time followed any doubling of iterations. 
+
+    The five second time saving in favour of column-major order operations over row-major order operations is contradictory to the way C++ handles memory, where data is stored in row major order. The Armadillo implementation did not appear to use any time performing a matrix multiplication with this $N$.
+
+    It has been shown that a tailored solution method can greatly reduce the computational time.
+
+\end{document}
+
