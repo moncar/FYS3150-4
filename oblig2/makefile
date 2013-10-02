@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-c -Wall
-LDFLAGS=
-SOURCES=main.cpp jacobirot.cpp
+LDFLAGS=-larmadillo
+SOURCES=main.cpp jacobirot.cpp lib.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 	EXECUTABLE=obl2.x
 
