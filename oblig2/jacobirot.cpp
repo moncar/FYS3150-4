@@ -77,7 +77,8 @@ void jacobiRotation(arma::mat &A, int N) {
            if (j != k && j != l) {
                A(j,k) = Ajk * cosTheta - Ajl * sinTheta;
                A(j,l) = Ajl * cosTheta + Ajk * sinTheta;
-           }}
+           }
+       }
 
        A(k,k) = Akk*cosTheta*cosTheta \
                 - 2*Akl * cosTheta * sinTheta \
