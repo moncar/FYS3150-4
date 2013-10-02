@@ -12,30 +12,32 @@ using namespace arma;
 void jacobiRotation(arma::mat &A, int N) {
     // Takes a sym. NxN matrix A and rotates it
         
-    double eps  = 1e-6;     // precision
+    double eps  = 1e-8;     // precision
     int n       = 0;        // counter
     double offDiag=eps+1;
     
-    // Find largest off-diagonal element -> needed to find angle theta
+    // Matrix to hold off-diagonal values 
     mat Aoff =  A; //zeros<mat>(N,N);
     //Aoff.diag(+1) = A.diag(+1);
     //Aoff.diag(-1) = A.diag(-1);   // omitting main diagonal
      
-    // Matrix to hold absolute values
+    // Matrix to hold absolute values of off-diagonal elements
     mat AoffAbs = A;
 
     while (offDiag > eps && n < N*N*N) {
-        cout << " ========= iteration: ===========" << n << endl;
+        // Break if:
+        // - The sum of offdiagonal elements are smaller than a epsilon
+        // - iteration no n is above a limit
+        cout << n << "========= iteration =========" << n << endl;
 
         Aoff = A;
         Aoff.diag() = zeros<vec>(N);
 
+        // Find maximum of absolute values of off-diagonal elements:
         uword rowN; uword colN;
         int k; int l;
         AoffAbs = abs(Aoff);
         double maxA = AoffAbs.max(rowN, colN);
-        //double maxA = Aoff.max(rowN,colN) > abs(Aoff.min(rowN,colN)) ? \
-                             Aoff.max(rowN,colN) : abs(Aoff.min(rowN,colN));
 
         //A.print();
         cout << "\n" << endl;
@@ -47,7 +49,7 @@ void jacobiRotation(arma::mat &A, int N) {
         offDiag = sqrt(accu(Aoff % Aoff));
         cout << "Offdiag = " << offDiag << endl;
 
-        // find 1 < k < l < n
+        // find 1 < k < l < n <-- ERROR in compendium?
         k = rowN; //rowN < colN ? rowN : colN;
         l = colN; //rowN > colN ? rowN : colN;
         //cout << "k=" <<  k << " l=" << l << endl;
@@ -86,7 +88,8 @@ void jacobiRotation(arma::mat &A, int N) {
                 A(j,l) = Ajl * cosTheta + Ajk * sinTheta;
                 //cout << "A(j,k)=" << A(j,k) << endl;
                 //cout << "A(j,l)=" << A(j,l) << endl;
-           }}
+           }
+        }
 
         A(k,k) = Akk*cosTheta*cosTheta \
                 - 2*Akl * cosTheta * sinTheta \
