@@ -62,11 +62,11 @@ void jacobiRotation(arma::mat &A, int N) {
           //
         double cot2Theta = (A(l,l) - A(k,k))/(2*A(k,l));
 
-        double tanTheta  = min( (-cot2Theta + sqrt(1+ cot2Theta*cot2Theta)) \
-                                            -cot2Theta - sqrt(1+ cot2Theta*cot2Theta) );
-              
-              //= min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
+        //double tanTheta = min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
 
+        double tanTheta = min( (-cot2Theta + sqrt(1+ cot2Theta*cot2Theta)) \
+                                -cot2Theta - sqrt(1+ cot2Theta*cot2Theta) );
+              
         cout << tanTheta << endl;
         cout << cot2Theta << "\t" << sqrt(1+ pow(cot2Theta,2)) << endl;
 

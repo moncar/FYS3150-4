@@ -19,23 +19,74 @@ using namespace arma;
 const double hbar = 6.58211928e-16;   // eV s
 const double m_e  = 0.51100e6;        // eV c-2
 
+inline double fPot1(double fRho_min, double fRho_h, int i) {
+    return pow((fRho_min + i*fRho_h), 2);
+}
+
+inline double fPot2(double fRho_min, double fRho_h, int i, double omega) {
+    return pow(( omega * (fRho_min + i*fRho_h) ), 2) \
+            + 1./(fRho_min + max(i,1)*fRho_h);
+    // using max(i,1) to prevent division w/0
+}
+
 int main(int argc, char* argv[]) {
 
     // Physics: potential of the harmonic oscillator V(r)
     // Potential: V(rho) = rho^2
-    int N = 10;
+    int N;
+    if (argc > 1)   { N = atoi(argv[1]); }
+    else            { N = 12; }
     double fRho_min = 0.0;
-    double fRho_max = 10.0; // 1./fAlpha * r // 10 alphas
+    double fRho_max = 100.0; // 1./fAlpha * r // 10 alphas
+    double omega    = 0.01; // oscillator "frequency"
 
-    vStartJacobi(N, fRho_min, fRho_max);
-    vStartEIGVAL(N, fRho_min, fRho_max);
-    vStartTQLI(N, fRho_min, fRho_max);
+    // Arrays to hold eigenvalues
+    vec eigvals1(N);
+    vec eigvals2(N);
+    vec eigvals3(N);
+
+    cout << "JACOBI" << endl;
+    vStartJacobi(N, fRho_min, fRho_max, omega, &eigvals1);
+    cout << "ARMADILLO" << endl;
+    vStartEIGVAL(N, fRho_min, fRho_max, omega, &eigvals2);
+    cout << "TQLI HOUSEHOLDER" << endl;
+    vStartTQLI  (N, fRho_min, fRho_max, omega, &eigvals3);
+
+    // Pass on 3*N long array with results to file, to be stored as cols
+    // Needs: rho values
+
+    double* rhos = new double[3*N];
+    double* vals = new double[3*N];
+
+    for (int j=0; j < 3; j++) {
+        // three columns as one
+        for (int i=0; i < N; i++) {
+            rhos[i + j*N ] = fRho_min + i*(fRho_max-fRho_min)/N;
+            if (j==0) { vals[i]         = eigvals1(i); } 
+            if (j==1) { vals[i + j*N]   = eigvals2(i); } 
+            if (j==2) { vals[i + j*N]   = eigvals3(i); }
+        }
+    }
+
+    if (argc <= 2) {
+        cout << "ERROR! Missing output file specification:\n \
+                 \t obl2.x N outputfile.txt" << endl;
+        exit(1);
+    }
+    else {
+        outputFile(N, 3, rhos, vals, &argv[2]); 
+    }
 
     return 0;
 
 }
 
-void vStartJacobi(double N, double fRho_min, double fRho_max) {
+void vStartJacobi( \
+        int N, \
+        double fRho_min, \
+        double fRho_max, \
+        double omega, \
+        arma::vec* eigvals){
     // Function to initialise and run Jacobi rotation
     // Creates tridiagonal matrix and passes it on to jacobirot.cpp
 
@@ -51,7 +102,8 @@ void vStartJacobi(double N, double fRho_min, double fRho_max) {
     for (int i=0; i<N; i++) {
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
-        fV[i] = pow((fRho_min + i*fRho_h), 2);  // potential
+        fV[i] = fPot1(fRho_min, fRho_h, i);     // potential
+        //fV[i] = fPot2(fRho_min, fRho_h, i, omega); // 2 electrons
         fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
@@ -70,15 +122,21 @@ void vStartJacobi(double N, double fRho_min, double fRho_max) {
     A.print();
 
     // Eigenvalues are on the diagonal
-    vec eig = diagvec(A);
+    *eigvals = diagvec(A);
+    *eigvals = sort(*eigvals);
 
     //cout << &A << endl;
-    cout << sort(eig) << endl;
+    //cout << sort(*eigvals) << endl;
 
 }
 
 
-void vStartEIGVAL(double N, double fRho_min, double fRho_max) {
+void vStartEIGVAL(\
+        int N, \
+        double fRho_min, \
+        double fRho_max, \
+        double omega, \
+        arma::vec* eigvals ){
     // Function to initialise tridiagonal arrays
     // and pass these on to EIG_SYM method of Armadillo
     // Prints eigenvalues and eigenvectors
@@ -95,7 +153,8 @@ void vStartEIGVAL(double N, double fRho_min, double fRho_max) {
     for (int i=0; i<N; i++) {
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
-        fV[i] = pow((fRho_min + i*fRho_h), 2);  // potential
+        fV[i] = fPot1(fRho_min, fRho_h, i);     // potential
+        //fV[i] = fPot2(fRho_min, fRho_h, i, omega); // 2 electrons
         fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
@@ -109,16 +168,23 @@ void vStartEIGVAL(double N, double fRho_min, double fRho_max) {
     A.print();
 
     // Apply operations on A to find eigenvalues
-    vec eigval;
+    //vec eigvals;
     mat eigvec;
 
-    eig_sym(eigval, eigvec, A);
+    eig_sym(*eigvals, eigvec, A);
 
-    eigval.print();
+    eigvals->print();
+    // Woho! Same as 
+    // (*eigvals).print();
 }
 
 
-void vStartTQLI(int N, double fRho_min, double fRho_max) {
+void vStartTQLI(\
+        int N, \
+        double fRho_min, \
+        double fRho_max, \
+        double omega, \
+        arma::vec* eigvals ) {
     // Calling TQLI: Householder's method for finding eigenvalues and
     // eigenvectors.
 
@@ -140,7 +206,8 @@ void vStartTQLI(int N, double fRho_min, double fRho_max) {
     for (int i=0; i<N; i++) {
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
-        fV2[i] = pow((fRho_min + i*fRho_h), 2);     // potential
+        fV2[i] = fPot1(fRho_min, fRho_h, i);     // potential
+        //fV2[i] = fPot2(fRho_min, fRho_h, i, omega); // 2 electrons
         fD2[i] = fV2[i] + 2.*pow(fRho_h, -2);       // diagonal
         //if (i<N-1) {
             fO2[i] = pow(fRho_h, -2.); 
@@ -150,7 +217,11 @@ void vStartTQLI(int N, double fRho_min, double fRho_max) {
     // Apply Householder's algorithm to find eigenvalues
     tqli(fD2, fO2, N, fEV);
 
+    // Sort eigenvalues
+    sort(fD2, fD2+N);
+
     for (int i=0; i<N; i++) {
+        (*eigvals)(i) = fD2[i];
         cout << fD2[i] << endl;
     }
 
