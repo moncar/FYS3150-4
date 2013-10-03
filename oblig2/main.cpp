@@ -44,14 +44,16 @@ int main(int argc, char* argv[]) {
     vec eigvals1(N);
     vec eigvals2(N);
     vec eigvals3(N);
+    mat eigvec2(N,N);
 
     cout << "JACOBI" << endl;
     vStartJacobi(N, fRho_min, fRho_max, omega, &eigvals1);
     cout << "ARMADILLO" << endl;
-    vStartEIGVAL(N, fRho_min, fRho_max, omega, &eigvals2);
+    vStartEIGVAL(N, fRho_min, fRho_max, omega, &eigvals2, &eigvec2);
     cout << "TQLI HOUSEHOLDER" << endl;
     vStartTQLI  (N, fRho_min, fRho_max, omega, &eigvals3);
 
+    // STORING EIGENVALUES:
     // Pass on 3*N long array with results to file, to be stored as cols
     // Needs: rho values
     double* rhos = new double[3*N];
@@ -76,6 +78,40 @@ int main(int argc, char* argv[]) {
     else {
         outputFile(N, 3, rhos, vals, &argv[2]); 
     }
+
+    // STORING EIGENVECTORS
+    // Writing to file, first col: rhos, following cols: eigenvectors
+
+    // Pass on 3*N long array with results to file, to be stored as cols
+    // Needs: rho values
+    double* rhos2 = new double[N*N];
+    double* vals2 = new double[N*N];
+
+    // Set up rhos
+    for (int j=0; j < N; j++) {
+        for (int i=0; i<N; i++) {
+            rhos2[i + j*N ] = fRho_min + i*(fRho_max-fRho_min)/(N-1); 
+        }
+    }
+    // Store eigenvectors as N columns following each other
+    for (int j=0; j < N*N; j++) {
+        vals2[j] = eigvec2(j); 
+    }
+
+    // Writing to file
+    if (argc <= 3) {
+        cout << "ERROR! Missing output file specification:\n \
+                 \t obl2.x N outputfile_eigvals.txt outputfile_eigvecs.txt" << endl;
+        exit(1);
+    }
+    else {
+        outputFile(N, N, rhos2, vals2, &argv[3]); 
+    }
+    
+    delete [] rhos;
+    delete [] rhos2;
+    delete [] vals;
+    delete [] vals2;
 
     return 0;
 
@@ -136,7 +172,8 @@ void vStartEIGVAL(\
         double fRho_min, \
         double fRho_max, \
         double omega, \
-        arma::vec* eigvals ){
+        arma::vec* eigvals, \
+        arma::mat* eigvec ){
     // Function to initialise tridiagonal arrays
     // and pass these on to EIG_SYM method of Armadillo
     // Prints eigenvalues and eigenvectors
@@ -169,13 +206,14 @@ void vStartEIGVAL(\
 
     // Apply operations on A to find eigenvalues
     //vec eigvals;
-    mat eigvec;
+    //mat eigvec;   // these are passed as input vector adresses
 
-    eig_sym(*eigvals, eigvec, A);
+    eig_sym(*eigvals, *eigvec, A);
 
     eigvals->print();
     // Woho! Same as 
     // (*eigvals).print();
+    eigvec->print();
 }
 
 

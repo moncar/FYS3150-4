@@ -9,6 +9,10 @@
 using namespace std;
 using namespace arma;
 
+template <typename T> int sgn(T val) {
+        return (T(0) < val) - (val < T(0));
+}
+
 void jacobiRotation(arma::mat &A, int N) {
     // Takes a sym. NxN matrix A and rotates it
         
@@ -24,7 +28,10 @@ void jacobiRotation(arma::mat &A, int N) {
     // Matrix to hold absolute values of off-diagonal elements
     mat AoffAbs = A;
 
-    while (offDiag > eps && n < N*N*N) {
+    // Double to hold max value
+    double maxA = 10.;
+
+    while (maxA > eps && n < N*N*N) {
         // Break if:
         // - The sum of offdiagonal elements are smaller than a epsilon
         // - iteration no n is above a limit
@@ -37,7 +44,7 @@ void jacobiRotation(arma::mat &A, int N) {
         uword rowN; uword colN;
         int k; int l;
         AoffAbs = abs(Aoff);
-        double maxA = AoffAbs.max(rowN, colN);
+        maxA = AoffAbs.max(rowN, colN);
 
         //A.print();
         cout << "\n" << endl;
@@ -46,8 +53,8 @@ void jacobiRotation(arma::mat &A, int N) {
         // Find sum over all offdiagonal elements,
         // % operator: elementwise multiplication
         // accu      : accumulates all elements
-        offDiag = sqrt(accu(Aoff % Aoff));
-        cout << "Offdiag = " << offDiag << endl;
+        //offDiag = sqrt(accu(Aoff % Aoff));
+        //cout << "Offdiag = " << offDiag << endl;
 
         // find 1 < k < l < n <-- ERROR in compendium?
         k = rowN; //rowN < colN ? rowN : colN;
@@ -62,11 +69,14 @@ void jacobiRotation(arma::mat &A, int N) {
           //
         double cot2Theta = (A(l,l) - A(k,k))/(2*A(k,l));
 
-        //double tanTheta = min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
+ //       double tanTheta = min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
 
         double tanTheta = min( (-cot2Theta + sqrt(1+ cot2Theta*cot2Theta)) \
                                 -cot2Theta - sqrt(1+ cot2Theta*cot2Theta) );
-              
+  
+       // double tanTheta = 1.*sgn(cot2Theta) \
+       //                 / (abs(cot2Theta) + sqrt(cot2Theta*cot2Theta + 1 ));
+
         cout << tanTheta << endl;
         cout << cot2Theta << "\t" << sqrt(1+ pow(cot2Theta,2)) << endl;
 

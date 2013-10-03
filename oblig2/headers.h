@@ -25,7 +25,8 @@ void vStartEIGVAL( \
         double fRho_min, \
         double fRho_max, \
         double omega, \
-        arma::vec* eigvals);
+        arma::vec* eigvals, \
+        arma::mat* eigvec);
 
 #endif
 
