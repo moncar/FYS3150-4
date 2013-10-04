@@ -17,9 +17,9 @@ void outputFile(int N, int cols,double *fX,double *fCalcX, char *filename[])
     ofile << setiosflags(ios::showpoint | ios::uppercase);
     for(int i=0; i < N; i++)
     {
-        ofile << setw(15) << setprecision(8) << fX[i];
+        ofile << setw(18) << setprecision(8) << fX[i];
         for (int j=0; j<cols; j++) {
-            ofile << setw(15) << setprecision(8) << fCalcX[i+j*N];
+            ofile << setw(18) << setprecision(8) << fCalcX[i+j*N];
         }
         ofile << endl;
     }
