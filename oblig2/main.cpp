@@ -25,7 +25,7 @@ inline double fPot1(double fRho_min, double fRho_h, int i) {
 
 inline double fPot2(double fRho_min, double fRho_h, int i, double omega) {
     return pow(( omega * (fRho_min + i*fRho_h) ), 2) \
-            + 1./(fRho_min + max(i,1)*fRho_h);
+            + 1./(fRho_min + i*fRho_h);
     // using max(i,1) to prevent division w/0
 }
 
@@ -37,8 +37,8 @@ int main(int argc, char* argv[]) {
     if (argc > 1)   { N = atoi(argv[1]); }
     else            { N = 12; }
     double fRho_min = 0.0;
-    double fRho_max = 100.0; // 1./fAlpha * r // 10 alphas
-    double omega    = 0.01; // oscillator "frequency"
+    double fRho_max = 10.0; // 1./fAlpha * r // 10 alphas
+    double omega    = 0.1; // oscillator "frequency"
 
     // Arrays to hold eigenvalues
     vec eigvals1(N);
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     for (int j=0; j < 3; j++) {
         // three columns as one
         for (int i=0; i < N; i++) {
-            rhos[i + j*N ] = fRho_min + i*(fRho_max-fRho_min)/(N-1);
+            rhos[i + j*N ] = fRho_min + (i+1)*(fRho_max-fRho_min)/(N);
             if (j==0) { vals[i]         = eigvals1(i); } 
             if (j==1) { vals[i + j*N]   = eigvals2(i); } 
             if (j==2) { vals[i + j*N]   = eigvals3(i); }
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // Set up rhos
     for (int j=0; j < N; j++) {
         for (int i=0; i<N; i++) {
-            rhos2[i + j*N ] = fRho_min + i*(fRho_max-fRho_min)/(N-1); 
+            rhos2[i + j*N ] = fRho_min + (i+1)*(fRho_max-fRho_min)/(N); 
         }
     }
     // Store eigenvectors as N columns following each other
@@ -126,7 +126,7 @@ void vStartJacobi( \
     // Function to initialise and run Jacobi rotation
     // Creates tridiagonal matrix and passes it on to jacobirot.cpp
 
-    double fRho_h   = (fRho_max - fRho_min)/(N-1);
+    double fRho_h   = (fRho_max - fRho_min)/(N);
     //double fOmega   = 
     //double fK       = m_e * pow(fOmega, 2);
     //double fAlpha   = pow((pow(hbar, 2)/(m_e * fK)), 1./4);
@@ -139,7 +139,7 @@ void vStartJacobi( \
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
         //fV[i] = fPot1(fRho_min, fRho_h, i);     // potential
-        fV[i] = fPot2(fRho_min, fRho_h, i, omega); // 2 electrons
+        fV[i] = fPot2(fRho_min, fRho_h, i+1., omega); // 2 electrons
         fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
@@ -178,7 +178,7 @@ void vStartEIGVAL(\
     // and pass these on to EIG_SYM method of Armadillo
     // Prints eigenvalues and eigenvectors
 
-    double fRho_h   = (fRho_max - fRho_min)/(N-1);
+    double fRho_h   = (fRho_max - fRho_min)/(N);
     //double fOmega   = 
     //double fK       = m_e * pow(fOmega, 2);
     //double fAlpha   = pow((pow(hbar, 2)/(m_e * fK)), 1./4);
@@ -191,7 +191,7 @@ void vStartEIGVAL(\
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
         //fV[i] = fPot1(fRho_min, fRho_h, i);     // potential
-        fV[i] = fPot2(fRho_min, fRho_h, i, omega); // 2 electrons
+        fV[i] = fPot2(fRho_min, fRho_h, i+1., omega); // 2 electrons
         fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
@@ -226,7 +226,7 @@ void vStartTQLI(\
     // Calling TQLI: Householder's method for finding eigenvalues and
     // eigenvectors.
 
-    double fRho_h   = (fRho_max - fRho_min)/(N-1);
+    double fRho_h   = (fRho_max - fRho_min)/(N);
     //double fOmega   = 
     //double fK       = m_e * pow(fOmega, 2);
     //double fAlpha   = pow((pow(hbar, 2)/(m_e * fK)), 1./4);
@@ -245,7 +245,7 @@ void vStartTQLI(\
         // V_i   = rho_i ^ 2
         // rho_i = rho_min + i*h
         //fV2[i] = fPot1(fRho_min, fRho_h, i);     // potential
-        fV2[i] = fPot2(fRho_min, fRho_h, i, omega); // 2 electrons
+        fV2[i] = fPot2(fRho_min, fRho_h, i+1., omega); // 2 electrons
         fD2[i] = fV2[i] + 2.*pow(fRho_h, -2);       // diagonal
         //if (i<N-1) {
             fO2[i] = pow(fRho_h, -2.); 
