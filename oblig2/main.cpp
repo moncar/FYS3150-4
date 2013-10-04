@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     else {
-        outputFile(N, N, rhos2, vals2, &argv[4]); 
+        outputFile(N, N, rhos2, vals2, &argv[5]); 
     }
     
     delete [] rhos;
