@@ -16,9 +16,9 @@ template <typename T> int sgn(T val) {
 void jacobiRotation(arma::mat &A, int N) {
     // Takes a sym. NxN matrix A and rotates it
         
-    double eps  = 1e-8;     // precision
+    double eps  = 1e-4;     // precision
     int n       = 0;        // counter
-    double offDiag=eps+1;
+    //double offDiag=eps+1;
     
     // Matrix to hold off-diagonal values 
     mat Aoff =  A; //zeros<mat>(N,N);
@@ -56,9 +56,9 @@ void jacobiRotation(arma::mat &A, int N) {
         //offDiag = sqrt(accu(Aoff % Aoff));
         //cout << "Offdiag = " << offDiag << endl;
 
-        // find 1 < k < l < n <-- ERROR in compendium?
-        k = rowN; //rowN < colN ? rowN : colN;
-        l = colN; //rowN > colN ? rowN : colN;
+        // find 1 < k < l < n 
+        k = rowN < colN ? rowN : colN;
+        l = rowN > colN ? rowN : colN;
         //cout << "k=" <<  k << " l=" << l << endl;
         cout << maxA << " at A(" << rowN+1<< ","<< colN+1<< ")" << endl;
 
@@ -69,13 +69,17 @@ void jacobiRotation(arma::mat &A, int N) {
           //
         double cot2Theta = (A(l,l) - A(k,k))/(2*A(k,l));
 
- //       double tanTheta = min(( -1./(-cot2Theta - sqrt(1 + pow(cot2Theta,2)))), ( -1./(-cot2Theta + sqrt(1 + pow(cot2Theta,2)))) ) ;
+        //double tanTheta = min(-cot2Theta + sqrt(1+ cot2Theta*cot2Theta)) \
+        //                        -cot2Theta - sqrt(1+ cot2Theta*cot2Theta) );
+        double tanTheta;
 
-        double tanTheta = min( (-cot2Theta + sqrt(1+ cot2Theta*cot2Theta)) \
-                                -cot2Theta - sqrt(1+ cot2Theta*cot2Theta) );
-  
-       // double tanTheta = 1.*sgn(cot2Theta) \
-       //                 / (abs(cot2Theta) + sqrt(cot2Theta*cot2Theta + 1 ));
+        if (cot2Theta < 1.) {
+            tanTheta = -1./( -cot2Theta+ sqrt( cot2Theta * cot2Theta +1 ) );
+        }
+        else {
+            tanTheta = +1./(  cot2Theta+ sqrt( cot2Theta * cot2Theta +1 ) );
+        }
+
 
         cout << tanTheta << endl;
         cout << cot2Theta << "\t" << sqrt(1+ pow(cot2Theta,2)) << endl;
@@ -95,7 +99,9 @@ void jacobiRotation(arma::mat &A, int N) {
             if (j != k && j != l) {
                 //cout << j<<k<<l << endl;
                 A(j,k) = Ajk * cosTheta - Ajl * sinTheta;
+                A(k,j) = A(j,k);
                 A(j,l) = Ajl * cosTheta + Ajk * sinTheta;
+                A(l,j) = A(j,l);
                 //cout << "A(j,k)=" << A(j,k) << endl;
                 //cout << "A(j,l)=" << A(j,l) << endl;
            }
@@ -109,7 +115,9 @@ void jacobiRotation(arma::mat &A, int N) {
                 + 2*Akl * cosTheta * sinTheta \
                 +   Akk * sinTheta * sinTheta;
         //cout <<  "A(l,l)=" <<A(l,l) << endl;
-        A(k,l) = (Akk - All) * cosTheta * sinTheta \
+        A(k,l) = 0.; //(Akk - All) * cosTheta * sinTheta \
+                +   Akl * (cosTheta * cosTheta - sinTheta *sinTheta);
+        A(l,k) = 0.; //(Akk - All) * cosTheta * sinTheta \
                 +   Akl * (cosTheta * cosTheta - sinTheta *sinTheta);
         //cout <<  "A(k,l)=" <<A(k,l) << endl;
 
