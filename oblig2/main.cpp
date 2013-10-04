@@ -34,11 +34,17 @@ int main(int argc, char* argv[]) {
     // Physics: potential of the harmonic oscillator V(r)
     // Potential: V(rho) = rho^2
     int N;
-    if (argc > 1)   { N = atoi(argv[1]); }
-    else            { N = 12; }
+    double omega;       // oscillator "strength"/"frequency"
     double fRho_min = 0.0;
-    double fRho_max = 10.0; // 1./fAlpha * r // 10 alphas
-    double omega    = 0.1; // oscillator "frequency"
+    double fRho_max;    // maxium distance
+
+    // Read iterations and frequency from argv
+    if (argc > 2)   {   N       = atoi(argv[1]);
+                        omega   = atof(argv[2]);
+                        fRho_max= atof(argv[3]); }
+    else            {   N       = 12;
+                        omega   = 0.01;
+                        fRho_max= 60.0; }
 
     // Arrays to hold eigenvalues
     vec eigvals1(N);
@@ -72,17 +78,17 @@ int main(int argc, char* argv[]) {
     // Writing to file
     if (argc <= 2) {
         cout << "ERROR! Missing output file specification:\n \
-                 \t obl2.x N outputfile.txt" << endl;
+                 \t obl2.x N omega rhomax  outputfile.txt" << endl;
         exit(1);
     }
     else {
-        outputFile(N, 3, rhos, vals, &argv[2]); 
+        outputFile(N, 3, rhos, vals, &argv[4]); 
     }
 
     // STORING EIGENVECTORS
     // Writing to file, first col: rhos, following cols: eigenvectors
 
-    // Pass on 3*N long array with results to file, to be stored as cols
+    // Pass on N*N length array with results to file, to be stored as cols
     // Needs: rho values
     double* rhos2 = new double[N*N];
     double* vals2 = new double[N*N];
@@ -101,11 +107,11 @@ int main(int argc, char* argv[]) {
     // Writing to file
     if (argc <= 3) {
         cout << "ERROR! Missing output file specification:\n \
-                 \t obl2.x N outputfile_eigvals.txt outputfile_eigvecs.txt" << endl;
+\t obl2.x N omega rhomax  outputfile_eigvals.txt outputfile_eigvecs.txt" << endl;
         exit(1);
     }
     else {
-        outputFile(N, N, rhos2, vals2, &argv[3]); 
+        outputFile(N, N, rhos2, vals2, &argv[4]); 
     }
     
     delete [] rhos;
@@ -150,12 +156,12 @@ void vStartJacobi( \
     A.diag(+1)  -= pow(fRho_h, -2.); 
     A.diag(-1)  -= pow(fRho_h, -2.); 
 
-    A.print();
+    //A.print();
 
     // Apply operations on A to find eigenvalues
     jacobiRotation(A, N);
 
-    A.print();
+    //A.print();
 
     // Eigenvalues are on the diagonal
     *eigvals = diagvec(A);
@@ -202,7 +208,7 @@ void vStartEIGVAL(\
     A.diag(+1)  -= pow(fRho_h, -2.); 
     A.diag(-1)  -= pow(fRho_h, -2.); 
 
-    A.print();
+    //A.print();
 
     // Apply operations on A to find eigenvalues
     //vec eigvals;
