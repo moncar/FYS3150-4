@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Storing runs in proper text files
+
+./obl2.x 200 0.01 60 resfinal1.txt resfinal1_vec.txt 
+./obl2.x 200 0.5 8 resfinal2.txt resfinal2_vec.txt 
+./obl2.x 200 1 8 resfinal3.txt resfinal3_vec.txt 
+./obl2.x 200 5 4 resfinal4.txt resfinal4_vec.txt 
