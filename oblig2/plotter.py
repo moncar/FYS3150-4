@@ -44,10 +44,10 @@ plt.rc('font', family='serif')
 ax1 = fig.add_subplot(111)
 #ax2 = ax1.twinx()
 
-p11, = ax1.plot(data1[:,0],data1[:,3]**2)
-p12, = ax1.plot(data2[:,0],data2[:,3]**2)
-p13, = ax1.plot(data3[:,0],data3[:,3]**2)
-p14, = ax1.plot(data4[:,0],data4[:,3]**2)
+p11, = ax1.plot(data1[:,0],data1[:,3], 'g-2')
+p12, = ax1.plot(data2[:,0],data2[:,3], 'k-1')
+p13, = ax1.plot(data3[:,0],data3[:,3], 'r-,')
+p14, = ax1.plot(data4[:,0],data4[:,3], 'b-+')
 #p2, = ax1.plot(data2[:,0],data2[:,1], color='k', linestyle='-.', linewidth=3)
 #p31, = ax2.plot(data1[:,0],data1[:,3], linestyle='--')
 #p32, = ax2.plot(data2[:,0],data2[:,3], linestyle='--') 
@@ -59,11 +59,11 @@ ax1.set_ylabel('Wave function', fontsize=14)
 #ax2.set_ylim([-3, 5])
 #ax1grid()
 #ax2.grid()
-#plt.legend([p11,p12,p13,p14], \
-#        [('Ground state ' + r'$n=1 ,\,\omega=0.01 '), \
-#        ('Ground state ' + r'$n=1 ,\,\omega=0.05 '), \
-#        ('Ground state ' + r'$n=1 ,\,\omega=1 '), \
-#        ('Ground state ' + r'$n=1 ,\,\omega=5 ') ]
+plt.legend([p11,p12,p13,p14], \
+       [(r'Ground state $n=0, \, {\omega}_r =0.01$'), \
+        (r'Ground state $n=0 ,\, {\omega}_r =0.5$ '), \
+        (r'Ground state $n=0 ,\, {\omega}_r =1$ '), \
+        (r'Ground state $n=0 ,\, {\omega}_r =5$ ') ] , loc=4 )
 #        ('Analytical solution'), \
 #        ('Rel. error, N=%g points' % (N1,)),\
 #        ('Rel. error, N=%g points' % (N2,)),\
