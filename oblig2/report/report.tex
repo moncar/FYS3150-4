@@ -45,7 +45,7 @@
 \restylefloat{table}
 %\floatsetup[table]{capposition=top}
 
-\setcounter{secnumdepth}{0}
+\setcounter{secnumdepth}{3}
 
 \newcommand{\tr}{\, \text{tr}\,}
 \newcommand{\diff}{\ensuremath{\; \text{d}}}
@@ -68,8 +68,8 @@
 \maketitle{}
 
 \begin{abstract}
-    
-\end{abstract}<++>
+    This project implements the Jacobi eigenvalue method on the Schr\"{o}dinger equation for one and two electrons in a harmonic oscillator potential and with and without electrostatic repulsion. The project reduces a 6-dimensional problem to a 1-dimensional problem where there exist analytic closed-form solutions using relative coordinates and centre-of-mass coordinates. The main feature of the Jacobi method is to eliminate the largest off-diagonal element in a symmetric matrix using Givens rotations applied as similarity transformations.
+\end{abstract}
 
 \section{Introduction}
 The time independent Schr\"{o}dinger equation can give the different energy levels in a spherical symmetric case with a given wave function $R(r)$ in a potential $V(r)$, where $r$ is the radial coordinate,
@@ -98,7 +98,7 @@ Rewriting the wave equation $R(r) = (1/r) u(r)$, the second derivative can be wr
     &= -\frac{\diff u(r)}{\diff r} + \left[ \frac{\diff u(r)}{\diff r} \frac{\diff r}{\diff r} + r \frac{\diff^2 u(r)}{\diff r^2} \right] \\
     &= +r \frac{\diff^2 u(r)}{\diff r^2},
 \end{align*}
-and substituting $r \to \alpha \rho$ where $\rho$ is a dimensionless variable, the operator becomes
+and substituting $r \to \alpha \rho$ where $\rho$ is a dimensionless variable, the differential operator becomes
 
 \[ \frac{\diff}{\diff r} = \frac{\diff \rho}{\diff r} \frac{\diff}{\diff \rho} = \frac{1}{\alpha} \frac{\diff}{\diff \rho}, \]
 and assuming $l=0$ for this project, the time-independent Schr\"{o}dinger equation becomes
@@ -125,15 +125,15 @@ The solutions of the time-independent Schr\"{o}dinger equation can be found usin
 
 The right hand side of eq.~(\ref{eq:se3}) has the second order differential operator which can be approximated as
 \[ -\frac{u\left( \rho_i + h \right) - 2u(\rho_i) + u\left( \rho_i - h \right)}{h} \equiv -\frac{u_{i+1} - 2u_i + u_{i-1}}{h^2}, \]
-where $h = (\rho_{\rm max} - \rho_{\rm min})/(N-1)$ is the step length with $N$ steps. 
+where $h = (\rho_{\rm max} - \rho_{\rm min})/N$ is the step length with $N$ steps, and the subscript $i$ denotes step 0,\dots,N. 
 
 The potential term can be rewritten,
 \[ \rho_i^2 u_i \equiv V_i u_i, \]
 and the right hand side terms for appropriate steps $\rho_i$ can be collected,
 \begin{align*}
     \frac{2}{h^2} u_i + \rho_i^2 u_i = \left( \frac{2}{h^2} + V_i \right) u_i &= d_i u_i \\
-    -\frac{u_{i+1}}{h^2} &= e_i u_{i+1} \\
-    -\frac{u_{i-1}}{h^2} &= e_i u_{i-1},
+    -\frac{1}{h^2}u_{i+1} &= e_i u_{i+1} \\
+    -\frac{1}{h^2}u_{i-1} &= e_i u_{i-1},
 \end{align*}
 making it possible to rewrite eq.~(\ref{eq:se3}) as
 \[ d_i u_i + e_{i-1} u_{i-1} + e_{i+1} u_{i+1} = \lambda u_i, \]
@@ -159,10 +159,10 @@ where it should be noted that $e_i$ remains a constant, meaning those terms give
 \end{equation}
 or, simply
 \begin{equation}
-    A \mathbf{u} = \lambda \mathbf{u}.
+    A \mathbf{u} = \lambda \mathbf{u}
     \label{eq:se_vector}
 \end{equation}
-
+where $u_{0} = u_N = 0$.
 
 \subsection{Applying the Jacobi eigenvalue algorithm}
 The Jacobi eigenvalue algorithm can be applied on the symmetric matrix of eq.~(\ref{eq:se_matrix}) in order to find the eigenvalues $\lambda_n$ for the various energy levels $n$, which are related to the observable energy $E$ through eq.~(\ref{eq:energies}). 
@@ -184,17 +184,17 @@ Givens rotation applies to the plane spanned by the coordinate axes $k,l$ in $N$
 
 The Givens matrix is orthogonal, $P_{k,l}^T P_{k,l} = I$, and a series of similarity transformations $P_{k,l}^T P_{k,l}^T \cdots P_{k,l}^T A P_{k,l} \cdots P_{k,l}  P_{k,l}$ will cancel out all off-diagonal elements, with $P_{k,l} A$ only affecting the columns, and $A P_{k,l}$ only affecting the rows \cite{numrecipes}. For each transformation $A' = P_{k,l}^T A P_{k,l} $, the new elements in $A'$ are
 \begin{align*}
-    A_{jj}' &= A_{jj}   \qquad j\neq k, j \neq l \\
-    A_{jk}' &= A_{jk} \cos \theta - A_{jl} \sin\theta   \qquad j\neq k, j \neq l \\
-    A_{jl}' &= A_{jk} \cos \theta + A_{jl} \sin\theta   \qquad j\neq k, j \neq l \\
+    A_{jj}'             &= A_{jj}   \qquad j\neq k, j \neq l \\
+    A_{jk}' = A_{kj}'   &= A_{jk} \cos \theta - A_{jl} \sin\theta   \qquad j\neq k, j \neq l \\
+    A_{jl}' = A_{lj}'   &= A_{jk} \cos \theta + A_{jl} \sin\theta   \qquad j\neq k, j \neq l \\
     A_{kk}' &= A_{kk} \cos^2\theta - 2 A_{kl} \cos\theta \sin\theta 
                     ~+ A_{ll} \sin^2\theta \\
     A_{ll}' &= A_{ll} \cos^2\theta + 2 A_{kl} \cos\theta \sin\theta 
                     ~+ A_{ll} \sin^2\theta \\
-    A_{kl}' &= \left( A_{kk} - A_{ll} \right) \cos\theta \sin\theta 
+    A_{kl}' = A_{lk}'   &= \left( A_{kk} - A_{ll} \right) \cos\theta \sin\theta 
                 + A_{kl} \left( \cos^2\theta -\sin^2\theta \right)
 \end{align*}
-where it is required that element $A_{kl}'$ becomes zero, giving
+where the operations act symmetrically, as $A$ must be symmetric. The choice of indices $k,l$ are made such that $1 \leq k < l \leq N$. The central feature of the Jacobi method is to require that element $A_{kl}'$ becomes zero, giving
 \begin{align*}
     0   &= \left( A_{kk} - A_{ll} \right) \cos\theta \sin\theta 
                 + A_{kl} \left( \cos^2\theta -\sin^2\theta \right) \\
@@ -213,7 +213,7 @@ the null-expression for $A_{kl}'$ can be rewritten, now denoting $\cos\theta = c
 \end{align*}
 
 Furthermore, to find the tangent, the identity
-\[ \tan 2\theta = \frac{2 t}{1 - t^2} = \frac{1}{\tau} \]
+\[ \tan 2\theta = \frac{1}{\tau} = \frac{2 t}{1 - t^2} \]
 can be solved for $t$, from the quadratic function,
 \begin{align*}
     \frac{2t}{1 - t^2} &= \frac{1}{\tau}  \\
@@ -221,19 +221,15 @@ can be solved for $t$, from the quadratic function,
     t^2 + 2t \tau - 1 &= 0
 \end{align*}
 with solutions $t = -\tau \pm \sqrt{\tau^2 + 1}$. This latter equation should be rewritten for numerically stability,
-\begin{align*}
-    t &= \frac{\left( -\tau \pm \sqrt{\tau^2 + 1}\right) \left( -\tau \mp \sqrt{\tau^2 + 1} \right)}{-\tau \mp \sqrt{\tau^2 + 1} } \\
-    &= \frac{-1}{-\tau \mp \sqrt{\tau^2 + 1}}
-\end{align*}
+\begin{align}
+    t &= \frac{\left( -\tau \pm \sqrt{\tau^2 + 1}\right) \left( -\tau \mp \sqrt{\tau^2 + 1} \right)}{-\tau \mp \sqrt{\tau^2 + 1} } \notag \\
+    t &= \frac{1}{\tau + \sqrt{\tau^2 + 1}} \quad \lor \quad t = \frac{-1}{-\tau + \sqrt{\tau^2 + 1}}
+    \label{eq:t}
+\end{align}
 where the smaller value should be chosen, as to minimise the difference
 \[ ||A' - A||_F^2 = 4\left( 1-c \right) \sum\limits_{\substack{j=1\\j\neq k,l}}^N \left( A_{ik}^2 + A_{il}^2 \right) + \frac{2A^2_{kl}}{c^2}. \]
 
-The smaller $|\tan\theta|$ ensures a larger $\cos\theta$ which would minimise the difference given above, and according to \cite{numrecipes}, the expression for the tangent can be written
-\begin{equation}
-    t = \frac{\sgn\left( \tau \right)}{|\tau| + \sqrt{\tau^2 + 1} },
-    \label{eq:t}
-\end{equation}
-with $\sgn()$ the signum function, returning the sign of the variable.
+The smaller $|\tan\theta|$ ensures a larger $\cos\theta$ which would minimise the difference given above. This can be done by choosing the leftmost expression in eq.~(\ref{eq:t}) for positive $\tau$, and the rightmost expression for negative $\tau$, making $t \leq 1$ and hence must $\theta \leq \pi/4$. Equality, $t=1$, occurs for $\tau = 0$, giving $\theta = \pi/4$. 
 
 \subsection{Two electrons in a potential well}
 With two electrons in a harmonic oscillator potential well that also interact via repulsive Coulomb interaction, the time independent Schr\"{o}dinger equation becomes
@@ -241,7 +237,7 @@ With two electrons in a harmonic oscillator potential well that also interact vi
     \left( -\frac{\hbar^2}{2m} \frac{\diff}{\diff r_1^2} - \frac{\hbar^2}{2m} \frac{\diff^2}{\diff r_2^2} + \frac{1}{2} kr_1^2 + \frac{1}{2} kr_2^2 \right) u\left( r_1, r_2 \right) = E^{(2)} u\left( r_1, r_2 \right)
     \label{eq:se2el}
 \end{equation}
-where the superscript $(2)$ and coordinates $(r_1, r_2)$ denotes that there is a two-electron wave function. With the relative coordinate $r = r_1 - r_2$, and the coordinate relative to the center of mass,
+where the superscript $(2)$ and coordinates $(r_1, r_2)$ denotes that there is a two-electron wave function. With the relative coordinate $r = r_1 - r_2$, and the coordinate relative to the centre of mass,
 \[ R = \frac{1}{2} \left( r_1 + r_2 \right) \]
 the time independent Schr\"{o}dinger equation becomes
 \[ \left( -\frac{\hbar^2}{m}\frac{\diff^2}{\diff r^2} - \frac{\hbar^2}{4m}\frac{\diff^2}{\diff R^2} + \frac{1}{4}kr^2 + kR^2 \right) u(r,R) = E^{(2)} u(r,R). \]
@@ -262,11 +258,106 @@ the dimensionless Schr\"{o}dinger equation for relative coordinates $r$ for two 
     -\frac{\diff^2}{\diff \rho^2} \psi (\rho) + \omega_r^2 \rho^2 \psi(\rho) = \lambda \psi(\rho)
     \label{eq:se_2electrons}
 \end{equation}
-which can be solved numerically by replacing the potential for the single electron with $V_i = \rho^2 \to V_i' = \omega_r^2 \rho^2 + 1/\rho$. 
+which can be solved numerically by replacing the potential for the single electron with $V_i = \rho_i^2 \to V_i' = \omega_r^2 \rho_i^2 + 1/\rho_i$ where $i$ denotes step in $0,\dots,N$. 
 
 \section{Results}
+\subsection{Harmonic oscillator potential}
+With one single particle trapped in a harmonic oscillator potential $V(r) = (1/2) kr^2$ with $k= m \omega^2$, the eigenvalues were calculated.
+
+The eigenvalues were found using the Jacobi eigenvalue algorithm, using the dimensionless coordinate $\rho = r/\alpha$ and potential $V(\rho) = \rho^2$. To find reasonable eigenvalues, the number of iterations $N$ had to be appropriate with respect to the chosen range $(\rho_{\rm min}, \rho_{\rm max}]$ in order to get a reasonable step size $h$. The maximum $\rho_{\rm max}$ had to be large enough to yield the entirety of the wave function, and still be small enough compared to $N$.
+
+The lower three eigenvalues calculated using the Jacobi rotation algorithm can be seen for different $\rho_{\rm max}$ with $N=200$ in tab.~(\ref{tab:eigvals}). The project description gives that $\lambda_0 \to 3$, $\lambda_1 \to 7$ and $\lambda_2 \to 11$ and can thus work as a reference for the stability of the maximum boundary value.
+
+For increasing $\rho_{\rm max}$, the eigenvalues all decrease.
+
+With $N=200$ and $\rho_{\rm max} = 8.0$, the number of required iterations needed to reduce the absolute value of the largest off-diagonal element below $10^{-4}$ was 51 506 and took 9 seconds on an Intel i5 1.7 GHz processor, whereas both the Armadillo method and Householder method in the function \texttt{TQLI} required less than 1 second.
+
+The development for higher $\lambda$ did not follow a strictly increasing linear relationship, but showed variations in the slope a sudden increase for the largest eigenvalue over the penultimate eigenvalue. See fig.~(\ref{fig:3}) for a plot of eigenvalues for the wave function calculated for a single particle in a harmonic oscillator potential with strength $\omega_r = 0.01$.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/fig3.pdf}
+    \caption{Eigenvalues $\lambda_i$ calculated using the Jacobi eigenvalue method for a single particle in a harmonic oscillator potential with strength $\omega_r = 0.01$ and $N=200$ energy levels. Note that it does not follow a linear relationship as suggested by eq.~(\ref{eq:energies}).}
+    \label{fig:3}
+\end{figure}
+
+\begin{table}
+    \centering
+    \caption{Eigenvalues calculated using the Jacobi eigenvalue method for a single particle in a harmonic oscillator potential with different maximum boundary conditions $\rho_{\rm max}$. According to the project description, the eigenvalues should approach $\lambda_0 = 3$, $\lambda_1 = 7$ and $\lambda_2 = 11$.}
+    \begin{tabular}{l c c c}
+        $\rho_{\rm max}$    & $\lambda_0$   & $\lambda_1$   & $\lambda_2$ \\
+        \hline  
+        2.0                 & 3.496         & 11.06         & 23.30 \\
+        4.0                 & 2.955         & 6.935         & 10.99 \\
+        8.0                 & 2.910         & 6.863         & 10.83 \\
+        16.0                & 2.823         & 6.725         & 10.64 \\
+        32.0                & 2.562         & 6.442         & 10.25 \\
+        \hline
+    \end{tabular}
+    \label{tab:eigvals}
+\end{table}
+
+\subsection{Two electrons in a harmonic oscillator potential, with Coulomb force}
+In the case where two electrons were interacting via the repulsive Coulomb force in a harmonic oscillator potential, the resulting wave function as function of the relative distance $\rho = |r_1 - r_2|/\alpha \equiv r/\alpha$ are plotted in figs.~(\ref{fig:1a}, \ref{fig:1b}). The plots show the wave function with differing potential frequency $\omega_r = \sqrt{mk \alpha^4/(4 \hbar^2)}$. 
+
+The wave functions have maxima earlier the stronger the harmonic oscillator potentials are, and also go to zero for smaller $\rho$.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig1a.pdf}
+    \caption{Wave functions $\psi(\rho)$ where $\rho = |r_1 - r_2|/\alpha$ is the relative distance between the electrons plotted with different harmonic oscillator frequencies $\omega_r = \sqrt{mk \alpha^4/(4 \hbar^2)} = [0.01, 0.5, 1, 5]$. The cut-off for $\omega_r = 5$ seen at $\rho=4$ is due to the wave function only being calculated for $\rho \in (0,4]$. The plot for $\psi(\rho)$ with $\omega_r = 0.01$ goes beyond the chosen range of $\rho$ and can be seen in its full extent in fig.~(\ref{fig:1b}).  }
+    \label{fig:1a}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig1b.pdf}
+    \caption{Wave functions $\psi(\rho)$ where $\rho = |r_1 - r_2|/\alpha$ is the relative distance between the electrons, plotted with varying $\omega_r$. The range of $\rho$ is chosen as to fit for $\psi(\rho)$ with $\omega_r = 0.01$, corresponding to a weak harmonic oscillator potential.}
+    \label{fig:1b}
+\end{figure}
+
+\subsection{Two electrons in a harmonic oscillator potential, no Coulomb force}
+In figs.~(\ref{fig:2a}, \ref{fig:2b}), the wave functions $\psi(\rho)$ for different $\omega_r$ are plotted. The wave functions are calculated without the potential term arising from Coulomb repulsion, that is, the potential was changed from $V(\rho) = \omega^2_r \rho^2 + 1/\rho$ to $V(\rho) = \omega^2_r \rho^2$. Fig.~(\ref{fig:2a}) shows the wave functions with higher $\omega_r$, whereas fig.~(\ref{fig:2b}) shows the full span of the wave function in the oscillator potential with strength $\omega_r = 0.01$. 
+
+For higher $\omega_r$ the wave functions are damped earlier, and the probabilities for finding the two electrons become higher at smaller $\rho$. For small $\omega_r$, the wave function has its extrema at larger relative distances $\rho$ compared to larger $\omega_r$.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig2a.pdf}
+    \caption{Wave functions $\psi(\rho)$ where $\rho = |r_1 - r_2|/\alpha$ is the relative distance between the electrons, plotted with varying $\omega_r$ which gives the potential strength. The electrons are \textit{not} under influence from any Coulomb force. The plot only shows the full wave functions for the wave functions with the largest $\omega_r$, and hence those who are in the strongest potentials. The full wave function where $\omega_r = 0.01$ goes beyond the range of this plot, and can be seen in fig.~(\ref{fig:2b}).}
+    \label{fig:2a}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig2b.pdf}
+    \caption{Wave functions $\psi(\rho)$ where $\rho = |r_1 - r_2|/\alpha$ is the relative distance between the electrons, plotted with different harmonic oscillator potential strengths $\omega_r$ and no Coulomb repulsion. Here, the wave function with the smallest $\omega_r$ goes to zero at a much larger relative interdistance $\rho$ than for higher $\omega_r$, where the oscillator field is stronger. The wave functions where $\omega_r = [0.5, 1, 5]$ can be seen in finer detail in fig.~(\ref{fig:2a}). }
+    \label{fig:2b}
+\end{figure}
 
 \section{Discussion and conclusion}
+In the case where there is only one particle under the influence from the harmonic oscillator potential, the maximum boundary condition $\rho_{\rm max}$ has great influence on what eigenvalue the solver will bring. As seen in the results, did the lower three eigenvalues decrease with larger $\rho_{\rm max}$, however, the number $N$ of eigenvalues and intermittent steps between $\rho_{\rm min}$ and $\rho_{\rm max}$ was held constant and thus did the step size $h$ increase. From the plots showing the wave functions for two electrons, it can be seen that they rapidly decayed before $\rho = 10$ for $\omega_r > 0.01$ and it is likely that the wave function for the single particle also resides in that domain.
+
+The given eigenvalues in the project description thus appear plausible.
+
+The number of iterations is smaller than the number of operations for the Jacobi eigenvalue method. In \cite{MHJensen:2012}, the number of operations per rotation (one iteration is one rotation) is given as being in the range from $3N^2$~to~$5N^2$, whereas each rotation requires $4n$ operations, requiring a total of $12N^3$~to~$20N^3$ operations in order to find the eigenvalues. In the case with one particle in a harmonic oscillator potential, $N=200$ corresponds to from 120 000 to 200 000 iterations, approximately four times as many iterations as the method implemented here should theoretically require.
+
+A reason for this discrepancy could be that the Jacobi method would require far more operations on a symmetric, but not tridiagonal matrix before the eigenvalues appear, than for a symmetric tridiagonal matrix. Also, the choice of limit for the largest off-diagonal element, here chosen to be $10^{-4}$, can influence the number of iterations.
+
+There is thus reason to believe that application of the Jacobi method on a matrix on tridiagonal form offers a computational advantage over matrices that only are symmetric. The method implemented here is still far slower than the Householder method and the Armadillo method.
+
+An attempt to reproduce the energies given in tab.~(I) in \cite{Taut:1993}, where solutions on closed forms appear for distinct oscillator frequencies $\omega_r$ were not successful. The frequency in the article arises from the potential term $(1/2)\omega_r^2 r^2$ in the Hamilton operator, which differs from the dimensionless definition used in this project, $\omega_r^2 = (1/4) mk\alpha^4 / \hbar^2$. Also, as the article early assumes natural units $m = \hbar = c = 1$, making it problematic deriving the factors needed to give the energies $\varepsilon'$ in electron volts. However, comparison with the article revealed a flaw in the code which had significant effect on the potential shape.
+
+The shapes of the wave functions are inverted when comparing the cases with and without electrostatic repulsion. With electrostatic repulsion, the wave functions are also spread out more.
+
+For the case where the two electrons are under influence from the harmonic oscillator potential and the Coulomb force, the shape of the wave function under the strongest potential is similar to the shape under the weakest potential, whereas the two wave functions under intermediate field strengths had inverted shapes compared to the extreme cases.
+
+For a weak oscillator potential, the electrostatic repulsion between the electrons will force them away from each other, as seen in fig.~(\ref{fig:1b}). With large intermediate distances, they will behave more like single particles.
+
+As the eigenvectors corresponding to the ground states yield physically sensible wave functions, the model and the theoretical approach can be considered valid. 
+
+This project has shown that the Jacobi eigenvalue method can be applied with success to a set of $N$ linearly independent equations on symmetric tridiagonal form, yielding $N$ eigenvalues. 
+
 
 \bibliography{referanser}
 \bibliographystyle{plain}
