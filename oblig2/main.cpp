@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 #include <armadillo>
+#include <time.h>
 
 #include "headers.h"
 #include "lib.h"
@@ -20,13 +21,19 @@ const double hbar = 6.58211928e-16;   // eV s
 const double m_e  = 0.51100e6;        // eV c-2
 
 inline double fPot1(double fRho_min, double fRho_h, int i) {
+    // One electron: harmonic oscillator
     return pow((fRho_min + i*fRho_h), 2);
 }
 
 inline double fPot2(double fRho_min, double fRho_h, int i, double omega) {
-    return pow(( omega * (fRho_min + i*fRho_h) ), 2) \
+    // Two electrons: armonic oscillator w/ Coulomb force
+    return pow(( omega*omega * (fRho_min + i*fRho_h) ), 2) \
             + 1./(fRho_min + i*fRho_h);
-    // using max(i,1) to prevent division w/0
+}
+
+inline double fPot3(double fRho_min, double fRho_h, int i, double omega) {
+    // Two electrons: armonic oscillator NO Coulomb force
+    return pow(( omega*omega * (fRho_min + i*fRho_h) ), 2);
 }
 
 int main(int argc, char* argv[]) {
@@ -46,18 +53,34 @@ int main(int argc, char* argv[]) {
                         omega   = 0.01;
                         fRho_max= 60.0; }
 
+    // Timers
+    clock_t start1, finish1;
+    clock_t start2, finish2;
+    clock_t start3, finish3;
+
     // Arrays to hold eigenvalues
     vec eigvals1(N);
     vec eigvals2(N);
     vec eigvals3(N);
     mat eigvec2(N,N);
 
+    
+    // COMPUTE EIGENVALUES
     cout << "JACOBI" << endl;
-    vStartJacobi(N, fRho_min, fRho_max, omega, &eigvals1);
+        start1 = clock();
+        vStartJacobi(N, fRho_min, fRho_max, omega, &eigvals1);
+        finish1= clock();
+
     cout << "ARMADILLO" << endl;
-    vStartEIGVAL(N, fRho_min, fRho_max, omega, &eigvals2, &eigvec2);
+        start2 = clock();
+        vStartEIGVAL(N, fRho_min, fRho_max, omega, &eigvals2, &eigvec2);
+        finish2= clock();
+    
     cout << "TQLI HOUSEHOLDER" << endl;
-    vStartTQLI  (N, fRho_min, fRho_max, omega, &eigvals3);
+        start3 = clock();
+        vStartTQLI  (N, fRho_min, fRho_max, omega, &eigvals3);
+        finish3= clock();
+
 
     // STORING EIGENVALUES:
     // Pass on 3*N long array with results to file, to be stored as cols
@@ -119,6 +142,15 @@ int main(int argc, char* argv[]) {
     delete [] vals;
     delete [] vals2;
 
+    // Print time elapsed for different operations:
+    cout << "Time elapsed in seconds JACOBI: " \
+         << ((finish1-start1)/CLOCKS_PER_SEC) << endl;
+    cout << "Time elapsed in seconds ARMADILLO: " \
+         << ((finish2-start2)/CLOCKS_PER_SEC) << endl;
+    cout << "Time elapsed in seconds TQLI HOUSEHOLDER" \
+         << ((finish3-start3)/CLOCKS_PER_SEC) << endl;
+
+
     return 0;
 
 }
@@ -146,6 +178,7 @@ void vStartJacobi( \
         // rho_i = rho_min + i*h
         //fV[i] = fPot1(fRho_min, fRho_h, i);     // potential
         fV[i] = fPot2(fRho_min, fRho_h, i+1., omega); // 2 electrons
+        //fV[i] = fPot3(fRho_min, fRho_h, i+1., omega); // 2 els, NO Coulomb
         fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
@@ -198,6 +231,7 @@ void vStartEIGVAL(\
         // rho_i = rho_min + i*h
         //fV[i] = fPot1(fRho_min, fRho_h, i);     // potential
         fV[i] = fPot2(fRho_min, fRho_h, i+1., omega); // 2 electrons
+        //fV[i] = fPot3(fRho_min, fRho_h, i+1., omega); // 2 els, NO Coulomb
         fD[i] = fV[i] + 2.*pow(fRho_h, -2);     // diagonal
     }
 
