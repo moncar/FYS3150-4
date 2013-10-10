@@ -9,9 +9,10 @@ void outputFile(int N,int cols,double *fX,double *fCalcX, char *filename[]);
 #ifndef solver_EC_H
 #define solver_EC_H
 
-void solver_EC(   arma::vec (*vFuncIn)(arma::vec) \
-                , arma::vec *X0 \
+void solver_EC(   arma::vec (*vFuncIn)(arma::vec, arma::vec) \
                 , arma::mat *X \
-                , int N); 
+                , int N \
+                , int M \
+                , double dStep); 
 
 #endif
