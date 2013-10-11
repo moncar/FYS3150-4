@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall -O3
+CFLAGS=-c -Wall -O3 -std=gnu++11
 LDFLAGS=-larmadillo
 SOURCES=main.cpp outputFile.cpp solver_EC.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
