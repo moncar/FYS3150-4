@@ -1,8 +1,10 @@
-
+#include <iostream>
+#include <list>
 #include <armadillo>
 
 #include "headers.h"
 
+using namespace std;
 using namespace arma;
 
 //inline arma::vec vF1(arma::vec X) {
@@ -12,6 +14,93 @@ using namespace arma;
 template <typename T> int sgn(T val) {
             return (T(0) < val) - (val < T(0));
 }
+
+class SolarSystem
+{
+private:
+    // Initial values have to be stored in a list
+    vector<double> M ;
+    vector<double> vx;
+    vector<double> vy;
+    vector<double> x ;
+    vector<double> y ;
+
+    vector<double>::iterator Mit  = M.begin();
+    vector<double>::iterator vxit = vx.begin();
+    vector<double>::iterator vyit = vy.begin();
+    vector<double>::iterator xit  = x.begin();
+    vector<double>::iterator yit  = y.begin();
+
+    int nPlanets = 0;
+
+public:
+    void AddPlanet(double mass=1, double xpos=1, double ypos=0 \
+        ,double xvel=0, double yvel=0)
+    {
+        nPlanets += 1;
+        M.insert    (Mit,  mass);
+        vx.insert   (vxit, xvel);
+        vy.insert   (vyit, yvel);
+        x.insert    (xit,  xpos);
+        y.insert    (yit,  ypos);
+        
+        Mit++; vxit++; vyit++; xit++; yit++;
+    }
+
+    arma::cube ConstructArray(int N)
+    // Set up cube to hold all velocities and positions
+    {
+        arma::cube A(6, N, nPlanets);
+        // Data:
+        // Columns: 0,1: xvel, yvel
+        //          2,3: xpos, ypos
+        //            4: time
+        //            5: mass
+        
+        // Fill in: initial values
+        for (int k=0; k<nPlanets; k++) {
+            A(0,0,k) = vx[k];
+            A(1,0,k) = vy[k];
+            A(2,0,k) =  x[k];
+            A(3,0,k) =  y[k];
+            A(4,0,k) = 0.;
+            A(5,0,k) =  M[k];
+        }
+
+        return A;
+    }
+
+    inline double Radius(double x, double y) {
+        return sqrt(x*x + y*y);
+    }
+
+    void Paths(arma::cube* A)
+    // Calculate velocities and paths
+    {
+        // Forces:
+        double* fFk = new double[nPlanets];
+        for (int k=0; k<nPlanets; k++) {
+            fFk[k] = 0.0; 
+        }
+
+        for (int k=0; k<nPlanets; k++) {
+            // Iterate through each src planet
+            for (int j=0; j<nPlanets; j++) {
+                // Iterate through the other planets
+                if (k != j) {
+                    fFk[k] = A(0,0,j) / \
+                    ( Radius(A(2,i,k),A(3,i,k)) *  \
+                      Radius(A(2,i,k),A(3,i,k)) ) * \
+                    sgn(Radius(A(2,i,k),A(3,i,k)) - \
+                        Radius(A(2,i,k),A(3,i,k) ));
+                }
+            }
+        } 
+
+
+    }
+
+};
 
 inline arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
     vec Y(5);
@@ -42,6 +131,10 @@ inline double fVel(double fM, double fX) {
 }
 
 int main(int argc, char* argv[]) {
+
+    SolarSystem Sol;
+    Sol.AddPlanet();
+    Sol.ConstructArray(10);
 
     int N=1200000;
     int M=5;
@@ -91,6 +184,10 @@ int main(int argc, char* argv[]) {
     else {
         outputFile(N, 2, TIME, POS, &argv[1]);
     }
+
+    // Housekeeping
+    delete [] POS;
+    delete [] TIME;
 
 
     return 0;
