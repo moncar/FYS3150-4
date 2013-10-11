@@ -2,8 +2,8 @@
 
 // Swallows functions, initial values and solution arrays
 
-#include <iostream>
-#include <cmath>
+//#include <iostream>
+//#include <cmath>
 #include <armadillo>
 
 #include "headers.h"
@@ -17,6 +17,7 @@ void solver_EC(   arma::vec (*vFuncIn)(arma::vec, arma::vec) \
                 , int M \
                 , double dStep) 
 {
+    // Function: vFuncIn( X(i), X(i+1) )
 
     // Routine
     
