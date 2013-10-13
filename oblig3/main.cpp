@@ -3,7 +3,6 @@
 #include <armadillo>
 
 #include "headers.h"
-//#include "solarsystem.h"
 
 using namespace std;
 using namespace arma;
@@ -79,7 +78,8 @@ public:
     
 
     void SolveAll(arma::mat &Y, double dt) {
-        solver_EC(&aSystem, &Y, nIterations, 5*nPlanets+1, dt);
+        //solver_EC(&aSystem, &Y, nIterations, 5*nPlanets+1, dt);
+        solver_RK4(&aSystem, &Y, nIterations, 5*nPlanets+1, dt);
     }
 
 
@@ -106,7 +106,7 @@ arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
     
 
     for (int k=0; k<nPlanets; k++) {
-        double fFtot = 0;   // Total force on each planet k
+        //double fFtot = 0;   // Total force on each planet k
         double fFtotx= 0;   //  x-component
         double fFtoty= 0;   //  y-component
         double fFloc = 0;   // Force on planet k from planet j
@@ -155,17 +155,27 @@ arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
 
 int main(int argc, char* argv[]) {
     
-    int N=1000;
-    double dt = 0.0002;
+    int N=10000;
+    double dt = 0.005;
 
     SolarSystem Sol;
+    double fMsol = 332946.; // Earth masses
     // .AddPlanet(Mass, xpos, ypos, xvel, yvel)
-    Sol.AddPlanet(332946., 0., 0., 0., 0.);                      // Sun
-    Sol.AddPlanet(1., 1., 0., 0., fVel(332946., 1.));             // Earth
-    //Sol.AddPlanet(0.01, 1.00257, 0., 0., 0.001);       // Moon
-    Sol.AddPlanet(0.1, 5., 0., 0., fVel(332946., 5.));           // Mars 
-    //Sol.AddPlanet(95.152, 9.582, 0., 0., fVel(332946., 9.582)); // Saturn 
-    
+    // Sun
+    Sol.AddPlanet(1., 0., 0., 0., 0.);
+    // Earth
+    Sol.AddPlanet(1./fMsol, 1., 0., 0., fVel(1., 1.));
+    // Moon
+    //Sol.AddPlanet(0.0123/fMsol, 1.00257, 0., 0., fVel(1., 1.00257));
+    // Mars
+    Sol.AddPlanet(0.107/fMsol, -1.523679, 0., 0., fVel(1., 1.523679));
+    // Jupiter
+    Sol.AddPlanet(95.152/fMsol, 0., 9.582, fVel(1., 9.582), 0.);
+    // Saturn
+    Sol.AddPlanet(317.8/fMsol, 0., 5.204267, fVel(1., 5.204267), 0.);
+    // Uranus
+    Sol.AddPlanet(14.535/fMsol, 0., 19.229, -fVel(1., 19.229), 0.);
+
     mat A = Sol.ConstructArray(N);
 
     cout << "Class has # planets: " << Sol.PlanetCounter() << endl;
@@ -174,7 +184,7 @@ int main(int argc, char* argv[]) {
 
     int nPlanets = Sol.PlanetCounter();    
 
-    A.print();
+    //A.print();
 
     
     // SAVE TO FILE
