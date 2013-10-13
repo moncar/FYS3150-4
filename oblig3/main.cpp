@@ -31,7 +31,8 @@ private:
     vector<double>::iterator xit  = x.begin();
     vector<double>::iterator yit  = y.begin();
 
-    int nPlanets = 0;
+    int nPlanets = 0;   // will change as heavenly objects are added
+    int nIterations=0;  // to be defined by ConstructArray
 
 public:
     void AddPlanet(double mass=1, double xpos=1, double ypos=0 \
@@ -47,25 +48,27 @@ public:
         Mit++; vxit++; vyit++; xit++; yit++;
     }
 
-    arma::cube ConstructArray(int N)
-    // Set up cube to hold all velocities and positions
+    arma::mat ConstructArray(int N)
+    // Set up matrix to hold all velocities and positions
     {
-        arma::cube A(6, N, nPlanets);
+        nIterations = N;
+        arma::mat A(4*nPlanets+1, N);
         // Data:
-        // Columns: 0,1: xvel, yvel
-        //          2,3: xpos, ypos
-        //            4: time
-        //            5: mass
+        // Columns: 0,1: xvel, yvel -> 2*nPlanets
+        //          2,3: xpos, ypos -> 2*nPlanets
+        //            4: time       -> 1
+        //
+        // Each planet is assigned an index k
         
         // Fill in: initial values
+
         for (int k=0; k<nPlanets; k++) {
-            A(0,0,k) = vx[k];
-            A(1,0,k) = vy[k];
-            A(2,0,k) =  x[k];
-            A(3,0,k) =  y[k];
-            A(4,0,k) = 0.;
-            A(5,0,k) =  M[k];
+            A(k*4  ,0) = vx[k];
+            A(k*4+1,0) = vy[k];
+            A(k*4+2,0) =  x[k];
+            A(k*4+3,0) =  y[k];
         }
+        A(nPlanets, 0) =    0;  // init. time
 
         return A;
     }
@@ -73,62 +76,67 @@ public:
     inline double Radius(double x, double y) {
         return sqrt(x*x + y*y);
     }
+    
+    arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
+        // Set up vector containing velocities, positions and time
+        // for entire system
+        // Pos: (x,y) -> 2 * nPlanets
+        // Vel: (x,y) -> 2 * nPlanets
+        // time          1
+        vec Y(4*nPlanets+1);
 
-    void Paths(arma::cube* A)
-    // Calculate velocities and paths
-    {
-        // Forces:
-        double* fFk = new double[nPlanets];
-        for (int k=0; k<nPlanets; k++) {
-            fFk[k] = 0.0; 
-        }
+        //for planet k
+        //    interacting with planet j != k:
 
         for (int k=0; k<nPlanets; k++) {
-            // Iterate through each src planet
             for (int j=0; j<nPlanets; j++) {
-                // Iterate through the other planets
-                if (k != j) {
-                    fFk[k] = A(0,0,j) / \
-                    ( Radius(A(2,i,k),A(3,i,k)) *  \
-                      Radius(A(2,i,k),A(3,i,k)) ) * \
-                    sgn(Radius(A(2,i,k),A(3,i,k)) - \
-                        Radius(A(2,i,k),A(3,i,k) ));
+                if (j != k) {
+                    // Difference in position
+                    double fDX = Xi[j*4+2] - Xi[k*4+2];
+                    double fDY = Xi[j*4+3] - Xi[k*4+3];
+                    double fRad= sqrt(fDX*fDX + fDY*fDY);
+
+                    // Force direction
+                    double sgnX = sgn(fDX);
+                    double sgnY = sgn(fDY);
+
+                    // Forces, divided by M[k]
+                    double fFtot = M[j] / (fRad * fRad);
+                    //double fFtot = 1./ fR*fR * sgn(0. - 1.) ;
+                    
+                    // d2x / dt2
+                    // Fx/M[k] = F/M[k] * cos theta = F/M[k] * x/r 
+                    Y[k*4]      = sgnX * fFtot * Xi[k*4+2]/fRad;  
+                    
+                    // d2y / dt2
+                    // Fy/M[k] = F/M[k] * cos theta = F/M[k] * y/r 
+                    Y[k*4+1]    = sgnY * fFtot * Xi[k*4+3]/fRad;
+
+                    // dx  / dt
+                    Y[k*4+2]    = Xii[k*4] ;
+                    // dy  / dt
+                    Y[k*4+3]    = Xii[k*4+1] ;
                 }
             }
-        } 
+        }
 
+        // dt
+        Y[nPlanets*4] = 1.;
 
+        return Y;
     }
+
+    void SolveAll(arma::mat Y, double dt) {
+        solver_EC(&SolarSystem::aSystem, &Y, nIterations, 4*nPlanets+1, dt);
+    }
+
 
 };
 
-inline arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
-    vec Y(5);
-
-    // Radius
-    double fR = sqrt( Xi[2]*Xi[2] + Xi[3]*Xi[3] ) ;
-
-    // Forces
-    double fFtot = 1./ fR*fR * sgn(0. - 1.) ;
-    // d2x / dt2
-    Y[0] =  fFtot / 1. * Xi[2]/fR;      // Fx = F * cos theta = F * x/r 
-    // d2y / dt2
-    Y[1] =  fFtot / 1. * Xi[3]/fR;      // Fy = F * sin theta = F * y/r 
-
-    // dx  / dt
-    Y[2] = Xii[0] ;
-    // dy  / dt
-    Y[3] = Xii[1] ;
-
-    // dt
-    Y[4] = 1.;
-
-    return Y;
+inline double fVel(double fMass, double fRadius) {
+    return sqrt(fMass/fRadius);
 }
 
-inline double fVel(double fM, double fX) {
-    return sqrt(fM/fX);
-}
 
 int main(int argc, char* argv[]) {
 
@@ -136,7 +144,7 @@ int main(int argc, char* argv[]) {
     Sol.AddPlanet();
     Sol.ConstructArray(10);
 
-    int N=1200000;
+    int N=1200;
     int M=5;
     double dt = 0.02;
 
@@ -161,9 +169,11 @@ int main(int argc, char* argv[]) {
     Y(4,0) = 0.;                        // time
 
     //Y.print();
-    solver_EC(&aSystem, &Y, N, M, dt);
+    //solver_EC(&aSystem, &Y, N, M, dt);
 
     //Y.print();
+
+
 
     // Pass time, position to file
     
