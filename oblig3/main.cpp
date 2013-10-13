@@ -1,8 +1,9 @@
 #include <iostream>
-#include <list>
+#include <cmath>
 #include <armadillo>
 
 #include "headers.h"
+//#include "solarsystem.h"
 
 using namespace std;
 using namespace arma;
@@ -25,12 +26,6 @@ private:
     vector<double> x ;
     vector<double> y ;
 
-    vector<double>::iterator Mit  = M.begin();
-    vector<double>::iterator vxit = vx.begin();
-    vector<double>::iterator vyit = vy.begin();
-    vector<double>::iterator xit  = x.begin();
-    vector<double>::iterator yit  = y.begin();
-
     int nPlanets = 0;   // will change as heavenly objects are added
     int nIterations=0;  // to be defined by ConstructArray
 
@@ -39,20 +34,24 @@ public:
         ,double xvel=0, double yvel=0)
     {
         nPlanets += 1;
-        M.insert    (Mit,  mass);
-        vx.insert   (vxit, xvel);
-        vy.insert   (vyit, yvel);
-        x.insert    (xit,  xpos);
-        y.insert    (yit,  ypos);
+        M.push_back(mass);
+        vx.push_back(xvel);
+        vy.push_back(yvel);
+        x.push_back(xpos);
+        y.push_back(ypos);
         
-        Mit++; vxit++; vyit++; xit++; yit++;
+    }
+
+    int PlanetCounter() {
+        int nPlanetsPublic = nPlanets;
+        return nPlanetsPublic;
     }
 
     arma::mat ConstructArray(int N)
     // Set up matrix to hold all velocities and positions
     {
         nIterations = N;
-        arma::mat A(4*nPlanets+1, N);
+        arma::mat A(5*nPlanets+1, N);
         // Data:
         // Columns: 0,1: xvel, yvel -> 2*nPlanets
         //          2,3: xpos, ypos -> 2*nPlanets
@@ -63,10 +62,11 @@ public:
         // Fill in: initial values
 
         for (int k=0; k<nPlanets; k++) {
-            A(k*4  ,0) = vx[k];
-            A(k*4+1,0) = vy[k];
-            A(k*4+2,0) =  x[k];
-            A(k*4+3,0) =  y[k];
+            A(k*5  ,0) = vx[k];
+            A(k*5+1,0) = vy[k];
+            A(k*5+2,0) =  x[k];
+            A(k*5+3,0) =  y[k];
+            A(k*5+4,0) =  M[k];
         }
         A(nPlanets, 0) =    0;  // init. time
 
@@ -77,57 +77,9 @@ public:
         return sqrt(x*x + y*y);
     }
     
-    arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
-        // Set up vector containing velocities, positions and time
-        // for entire system
-        // Pos: (x,y) -> 2 * nPlanets
-        // Vel: (x,y) -> 2 * nPlanets
-        // time          1
-        vec Y(4*nPlanets+1);
 
-        //for planet k
-        //    interacting with planet j != k:
-
-        for (int k=0; k<nPlanets; k++) {
-            for (int j=0; j<nPlanets; j++) {
-                if (j != k) {
-                    // Difference in position
-                    double fDX = Xi[j*4+2] - Xi[k*4+2];
-                    double fDY = Xi[j*4+3] - Xi[k*4+3];
-                    double fRad= sqrt(fDX*fDX + fDY*fDY);
-
-                    // Force direction
-                    double sgnX = sgn(fDX);
-                    double sgnY = sgn(fDY);
-
-                    // Forces, divided by M[k]
-                    double fFtot = M[j] / (fRad * fRad);
-                    //double fFtot = 1./ fR*fR * sgn(0. - 1.) ;
-                    
-                    // d2x / dt2
-                    // Fx/M[k] = F/M[k] * cos theta = F/M[k] * x/r 
-                    Y[k*4]      = sgnX * fFtot * Xi[k*4+2]/fRad;  
-                    
-                    // d2y / dt2
-                    // Fy/M[k] = F/M[k] * cos theta = F/M[k] * y/r 
-                    Y[k*4+1]    = sgnY * fFtot * Xi[k*4+3]/fRad;
-
-                    // dx  / dt
-                    Y[k*4+2]    = Xii[k*4] ;
-                    // dy  / dt
-                    Y[k*4+3]    = Xii[k*4+1] ;
-                }
-            }
-        }
-
-        // dt
-        Y[nPlanets*4] = 1.;
-
-        return Y;
-    }
-
-    void SolveAll(arma::mat Y, double dt) {
-        solver_EC(&SolarSystem::aSystem, &Y, nIterations, 4*nPlanets+1, dt);
+    void SolveAll(arma::mat &Y, double dt) {
+        solver_EC(&aSystem, &Y, nIterations, 5*nPlanets+1, dt);
     }
 
 
@@ -137,53 +89,108 @@ inline double fVel(double fMass, double fRadius) {
     return sqrt(fMass/fRadius);
 }
 
+arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
+    // Set up vector containing velocities, positions and time
+    // for entire system
+    // Pos: (x,y) -> 2 * nPlanets
+    // Vel: (x,y) -> 2 * nPlanets
+    // Mass:      -> 1 * nPlanets
+    // time          1
+    
+    //int nPlanets = (sizeof(Xi)/sizeof(double) - 1) / (5);
+    double nPlanets = ( Xi.size() - 1)/5;
+    vec Y(5*nPlanets+1);
+
+    //for planet k
+    //    interacting with planet j != k:
+    
+
+    for (int k=0; k<nPlanets; k++) {
+        double fFtot = 0;   // Total force on each planet k
+        double fFtotx= 0;   //  x-component
+        double fFtoty= 0;   //  y-component
+        double fFloc = 0;   // Force on planet k from planet j
+        double fFlocx= 0;   //  x-component
+        double fFlocy= 0;   //  y-component
+        for (int j=0; j<nPlanets; j++) {
+            if (j != k) {
+                // Difference in position
+                double fDX = Xi[j*5+2] - Xi[k*5+2];
+                double fDY = Xi[j*5+3] - Xi[k*5+3];
+                double fRad= sqrt(fDX*fDX + fDY*fDY);
+
+                // Forces, divided by M[k]
+                fFloc = Xi[j*5+4] / (fRad * fRad);
+                fFlocx= fFloc * (Xi[j*5+2] - Xi[k*5+2])/fRad;  
+                fFlocy= fFloc * (Xi[j*5+3] - Xi[k*5+3])/fRad;
+                
+                fFtotx += fFlocx;
+                fFtoty += fFlocy;
+
+            }
+        }
+        // d2x / dt2
+        // Fx/M[k] = F/M[k] * cos theta = F/M[k] * x/r 
+        Y[k*5]      = fFtotx; 
+        
+        // d2y / dt2
+        // Fy/M[k] = F/M[k] * cos theta = F/M[k] * y/r 
+        //Y[k*5+1]    = fFtot * (Xi[j*5+3] - Xi[k*5+3])/fRad;
+        Y[k*5+1]    = fFtoty;
+
+        // dx  / dt
+        Y[k*5+2]    = Xii[k*5] ;
+        // dy  / dt
+        Y[k*5+3]    = Xii[k*5+1] ;
+
+        // dm / dt
+        Y[k*5+4]    = 0;
+    }
+
+    // dt
+    Y[nPlanets*5] = 1.;
+
+    return Y;
+}
 
 int main(int argc, char* argv[]) {
+    
+    int N=1000;
+    double dt = 0.0002;
 
     SolarSystem Sol;
-    Sol.AddPlanet();
-    Sol.ConstructArray(10);
+    // .AddPlanet(Mass, xpos, ypos, xvel, yvel)
+    Sol.AddPlanet(332946., 0., 0., 0., 0.);                      // Sun
+    Sol.AddPlanet(1., 1., 0., 0., fVel(332946., 1.));             // Earth
+    //Sol.AddPlanet(0.01, 1.00257, 0., 0., 0.001);       // Moon
+    Sol.AddPlanet(0.1, 5., 0., 0., fVel(332946., 5.));           // Mars 
+    //Sol.AddPlanet(95.152, 9.582, 0., 0., fVel(332946., 9.582)); // Saturn 
+    
+    mat A = Sol.ConstructArray(N);
 
-    int N=1200;
-    int M=5;
-    double dt = 0.02;
+    cout << "Class has # planets: " << Sol.PlanetCounter() << endl;
 
-    // Matrix to hold vectors:
-    // M rows:  0,1: Velocity
-    //          2,3: Position
-    //            4: Time
-    // N columns : updated for each timestep dt
+    Sol.SolveAll(A, dt);
 
-    mat Y(M,N);
-    Y.zeros();
+    int nPlanets = Sol.PlanetCounter();    
 
-    // Scales, EARTH AND SUN
-    double fMySol      = 1.; // [solar masses]
-    double fChiEarth   = 1.; // [AU]
+    A.print();
 
-    // Initial conditions, EARTH AND SUN
-    Y(0,0) = 0.;   // vel
-    Y(1,0) = fVel(fMySol, fChiEarth);   // vel
-    Y(2,0) = 1.;                 // pos
-    Y(3,0) = 0.;                 // pos
-    Y(4,0) = 0.;                        // time
-
-    //Y.print();
-    //solver_EC(&aSystem, &Y, N, M, dt);
-
-    //Y.print();
-
-
-
+    
+    // SAVE TO FILE
     // Pass time, position to file
     
-    double* POS = new double[2*N];
+    double* POS = new double[2*nPlanets*N];
     double* TIME= new double[N];
 
-    for (int kkk=0; kkk<N; kkk++) {
-        POS[kkk]   = Y(2,kkk);
-        POS[kkk+N] = Y(3,kkk);
-        TIME[kkk]   = Y(4,kkk);
+    for (int ppp=0; ppp<nPlanets; ppp++) {
+        for (int kkk=0; kkk<N; kkk++) {
+            int subscript = 2*ppp;
+            POS[kkk +  subscript *N] = A(ppp*5+2,kkk);
+            POS[kkk +  (subscript+1) *N] = A(ppp*5+3,kkk);
+            
+            TIME[kkk]   = A(5*nPlanets,kkk);
+        }
     }
 
     if (argc < 2) {
@@ -192,7 +199,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     else {
-        outputFile(N, 2, TIME, POS, &argv[1]);
+        outputFile(N, 2*nPlanets, TIME, POS, &argv[1]);
     }
 
     // Housekeeping
