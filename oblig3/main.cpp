@@ -147,7 +147,7 @@ arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
         Y[k*5+4]    = 0;
     }
 
-    // dt
+    // dt / dt
     Y[nPlanets*5] = 1.;
 
     return Y;
@@ -155,16 +155,23 @@ arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
 
 int main(int argc, char* argv[]) {
     
-    int N=10000;
-    double dt = 0.005;
+    int N=100000;
+    double dt = 0.0005;
 
     SolarSystem Sol;
     double fMsol = 332946.; // Earth masses
-    // .AddPlanet(Mass, xpos, ypos, xvel, yvel)
+
+    // Adding celestial objects using:
+    // Sol.AddPlanet(Mass, xpos, ypos, xvel, yvel)
+    
     // Sun
-    Sol.AddPlanet(1., 0., 0., 0., 0.);
+    Sol.AddPlanet(1.,           0.,     0.,     0.,       0.);
+    // Mercury
+    Sol.AddPlanet(0.055/fMsol,  0.387098, 0.,   0., -fVel(1., 0.387098));
+    // Venus
+    Sol.AddPlanet(0.815/fMsol, -0.723327, 0.,   0., -fVel(1., 0.723327));
     // Earth
-    Sol.AddPlanet(1./fMsol, 1., 0., 0., fVel(1., 1.));
+    Sol.AddPlanet(1./fMsol,     1.,     0.,     0.,  fVel(1., 1.));
     // Moon
     //Sol.AddPlanet(0.0123/fMsol, 1.00257, 0., 0., fVel(1., 1.00257));
     // Mars
@@ -175,7 +182,8 @@ int main(int argc, char* argv[]) {
     Sol.AddPlanet(317.8/fMsol, 0., 5.204267, fVel(1., 5.204267), 0.);
     // Uranus
     Sol.AddPlanet(14.535/fMsol, 0., 19.229, -fVel(1., 19.229), 0.);
-
+    // Neptune
+    Sol.AddPlanet(17.147/fMsol, 0., -30.103, fVel(1., 30.103), 0.);
     mat A = Sol.ConstructArray(N);
 
     cout << "Class has # planets: " << Sol.PlanetCounter() << endl;
