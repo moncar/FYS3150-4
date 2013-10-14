@@ -20,4 +20,5 @@ echo $filen'.txt'
 #./obl2.x 200 5 4 $filen'4b.txt' $filen'4_vec.txt' &
 
 # Plot 
+echo "Data has now been sent to plotter. Plotting..."
 python plotter.py $filen'.txt'
