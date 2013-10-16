@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
     double *fErr= new double[N];    // array: to hold difference Est vs Corr
     
     for (int iii=0; iii<N; iii++) {
-        fX[iii]    = fXmin + iii*fHstep;
-        fEstX[iii] = pow(fHstep,2) * fSourceFunc(fX[iii]); // h^2 * f(x) 
+        fX[iii]    = fXmin + iii*fHstep; 
+        fEstX[iii] = pow(fHstep,2) * fSourceFunc(fX[iii]); // h^2 * f(x)
         fCorrX[iii]= fSolutionFunc(fX[iii]);
     }
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     for (int iii=0; iii<N; iii++) {
         fErr[iii] = fRelError(fCorrX[iii], fEstX[iii]);
         
-//        cout << fX[iii] << "\t" << fCorrX[iii] << "\t" << fEstX[iii] << "\t" << fErr[iii] << endl;
+        cout << fX[iii] << "\t" << fCorrX[iii] << "\t" << fEstX[iii] << "\t" << fErr[iii] << endl;
     }
 
 
