@@ -1,0 +1,167 @@
+\documentclass[a4paper,11pt]{article}
+
+
+%\documentclass[journal = ancham]{achemso}
+%\setkeys{acs}{useutils = true}
+%\usepackage{fullpage}
+%\usepackage{natbib}
+\pretolerance=2000
+\tolerance=6000
+\hbadness=6000
+%\usepackage[landscape]{geometry}
+%\usepackage{pxfonts}
+%\usepackage{cmbright}
+%\usepackage[varg]{txfonts}
+%\usepackage{mathptmx}
+%\usepackage{tgtermes}
+\usepackage[utf8]{inputenc}
+%\usepackage{fouriernc}
+%\usepackage[adobe-utopia]{mathdesign}
+\usepackage[T1]{fontenc}
+%\usepackage[norsk]{babel}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+%\usepackage[version=3]{mhchem}
+\usepackage{pstricks}
+\usepackage[font=small,labelfont=bf,tableposition=below]{caption}
+\usepackage{subfig}
+%\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{sverb}
+%\usepackage{microtype}
+%\usepackage{enumerate}
+\usepackage{enumitem}
+%\usepackage{lineno}
+%\usepackage{booktabs}
+%\usepackage{changepage}
+%\usepackage[flushleft]{threeparttable}
+\usepackage{pdfpages}
+\usepackage{float}
+\usepackage{mathtools}
+
+\floatstyle{plaintop}
+\restylefloat{table}
+%\floatsetup[table]{capposition=top}
+
+\setcounter{secnumdepth}{3}
+
+\newcommand{\tr}{\, \text{tr}\,}
+\newcommand{\diff}{\ensuremath{\; \text{d}}}
+\newcommand{\sgn}{\ensuremath{\; \text{sgn}}}
+\newcommand{\UA}{\ensuremath{_{\uparrow}}}
+\newcommand{\RA}{\ensuremath{_{\rightarrow}}}
+\newcommand{\QED}{\left\{ \hfill{\textbf{QED}} \right\}}
+
+
+\date{\today}
+\title{N-body simulation: The solar system\\ \small{Project 3 -- FYS4150}}
+\author{Marius Berge Eide \\
+\texttt{mariusei@astro.uio.no}}
+
+
+\begin{document}
+
+
+\onecolumn
+\maketitle{}
+
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}
+This project aims to develop a model of the solar system, a model which can be abstracted to a $N$-body problem where the particles are affected by the mutual gravitational attraction,
+
+\begin{equation}
+    \mathbf{F}_G = G \frac{m_1 m_2}{|\mathbf{r}_2 - \mathbf{r}_1|^3} \left( \mathbf{r}_2 - \mathbf{r}_1  \right)
+    \label{eq:gravity}
+\end{equation}
+where $\mathbf{r}_k$ denotes the vector position of particle $k$ with mass $m_k$ and $G$ is the gravitational constant. 
+
+The project also aims to produce a higher-order Runge-Kutta differential equation solver as a stand-alone component. 
+
+\subsection{Historical backdrop}<++>
+
+\subsection{$N$-body gravitational problem}
+The vectorised equations governing the evolution through time for objects only affected by the gravitational attraction from other objects can be deduced from Newton's second law,
+
+\begin{equation}
+    \sum_j \mathbf{F}_j = m_k \mathbf{a}
+    \label{eq:N2L}
+\end{equation}
+where $\sum_j \mathbf{F}_j = \sum_j \mathbf{F}_{G,j}$ are the gravitational forces from the objects $j=0,\dots,N-1$. The acceleration can be rewritten,
+\[ \mathbf{a} = \frac{\partial^2 \mathbf{r}}{\partial t^2} = \frac{\sum_j \mathbf{F}_{G,j}}{m_k} \]
+which decomposes into
+\begin{align}
+    \frac{\partial^2 x}{\partial t^2} &= \frac{\sum_j \mathbf{F}_{g,j} \cdot \mathbf{e}_x}{m_k} = \frac{\sum_j F_{g,j} \cos \theta_j}{m_k} 
+    \label{eq:diffx} \\
+    \frac{\partial^2 y}{\partial t^2} &= \frac{\sum_j \mathbf{F}_{g,j} \cdot \mathbf{e}_y}{m_k} = \frac{\sum_j F_{g,j} \sin \theta_j }{m_k}
+    \label{eq:diffy}
+\end{align}
+where $\theta_j$ denotes the angle between the force from body $j$ and the $x$-axis.
+
+Conditions can also be imposed on the time and mass,
+\begin{align}
+    \frac{\partial m}{\partial t} &= 0 \label{eq:diffm} \\
+    \frac{\partial t}{\partial t} &= 1 \label{eq:difft}
+\end{align}
+giving four equations that has to be solved. 
+
+\subsection{Relativistic correction}
+A relativistic correctional factor can be imposed on the gravitational force, which in theory should be able to account for the perihelion precession of Mercury, where its position after one revolution is different from its initial position,
+
+\begin{equation}
+    \mathbf{F}_{G,j} = G\frac{m_j m_k}{| \mathbf{r}_j - \mathbf{r}_k |^3} \left[ 1 + \frac{3l^2}{|\mathbf{r}_k |^2 c^2} \right] \left( \mathbf{r}_j - \mathbf{r}_k \right)
+    \label{eq:perihelion}
+\end{equation}
+with $l = |\mathbf{r}_k \times \mathbf{v}_k|$ the magnitude of the orbital angular momentum per unit mass and $c$ the speed of light in vacuum.
+
+
+\section{Methods}
+\subsection{Decoupling of equations}
+The expressions given for the acceleration, eqs.~(\ref{eq:diffx}, \ref{eq:diffy}), cannot directly be solved. However, a decoupling into two first order equations,
+\begin{align}
+    \frac{\partial^2 \mathbf{r}}{\partial t^2} = \frac{\partial \mathbf{v}}{\partial t} &= \frac{\sum_j \mathbf{F}_{G,j}}{m_k} \label{eq:velocity} \\
+    \frac{\partial \mathbf{r}}{\partial t} &= \mathbf{v} \label{eq:position}
+\end{align}
+makes the set of equations solvable.
+
+\subsection{Scaling}
+The set of equations that are to be solved can be scaled in order to remove the dependency on units.
+
+The position can be rewritten $\mathbf{r} \to \alpha \boldsymbol{\chi}$, with components $x \to \alpha \chi_x$ and $y \to \alpha \chi_y$ with $\alpha$ a distance constant and $\boldsymbol{\chi}$ the position parameter.
+
+The time units can be rewritten as $t \to t_c \tau$ where $t_c$ is a time constant, and $\tau$ the dimensionless time parameter.
+
+The mass can be rewritten $m_k = m_c \mu_k$ where $m_c$ is the mass constant and $\mu_k$ is the mass parameter for object $k$.
+
+The velocity automatically follows the former two rewrites, with 
+\[ \mathbf{v} = \frac{\partial \mathbf{r}}{\partial t} = \frac{\partial (\alpha \boldsymbol{\chi})}{\partial (t_c \tau)} = \frac{\alpha}{t_c} \frac{\partial \boldsymbol{\chi}}{\partial \tau}. \]
+
+The force expression can be rendered dimensionless by using the given rewrites,
+\begin{align}
+    \mathbf{a} = \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{\sum_j \mathbf{F}_{G,j}}{m_k} \notag \\
+    &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \mathbf{r}_j - \mathbf{r}_k |^3} \left( \mathbf{r}_j - \mathbf{r}_k \right) \notag \\
+    &\equiv     \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \Delta \mathbf{r} |^3} \Delta \mathbf{r} \notag \\
+    \frac{\alpha^2}{t_c^2} \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \sum_j G \frac{m_c \mu_j}{|\alpha \Delta \boldsymbol{\chi}|^3} \alpha \Delta \boldsymbol{\chi} \notag \\
+    \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \frac{t_c^2}{\alpha^2} G \frac{m_c}{\alpha^2} \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi} |^3} \Delta \boldsymbol{\chi} \notag \\
+    &= \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi}|^3} \Delta \boldsymbol{\chi}
+    \label{eq:dimless}
+\end{align}
+where the last step consisted of requiring that the constants become unity,
+\begin{equation}
+    \frac{t_c^2}{\alpha^4} G m_c = 1
+    \label{eq:unity}
+\end{equation}
+
+\section{Results}<+++>
+
+\section{Discussion and conclusion}<+++>
+
+\bibliography{referanser}
+\bibliographystyle{plain}
+
+
+\end{document}
+
