@@ -156,7 +156,7 @@ arma::vec aSystem(arma::vec Xi, arma::vec Xii) {
 int main(int argc, char* argv[]) {
     
     int N=100000;
-    double dt = 0.0005;
+    double dt = 1./3650;
 
     SolarSystem Sol;
     double fMsol = 332946.; // Earth masses
