@@ -143,16 +143,19 @@ The force expression can be rendered dimensionless by using the given rewrites,
 \begin{align}
     \mathbf{a} = \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{\sum_j \mathbf{F}_{G,j}}{m_k} \notag \\
     &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \mathbf{r}_j - \mathbf{r}_k |^3} \left( \mathbf{r}_j - \mathbf{r}_k \right) \notag \\
-    &\equiv     \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \Delta \mathbf{r} |^3} \Delta \mathbf{r} \notag \\
+    \intertext{Introducing the vectorial difference $\Delta \mathbf{r} \equiv \left( \mathbf{r}_j - \mathbf{r}_k \right)$,}
+         \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \Delta \mathbf{r} |^3} \Delta \mathbf{r}, \notag \\
+         \intertext{and substituting in the scaled quantities,}
     \frac{\alpha^2}{t_c^2} \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \sum_j G \frac{m_c \mu_j}{|\alpha \Delta \boldsymbol{\chi}|^3} \alpha \Delta \boldsymbol{\chi} \notag \\
-    \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \frac{t_c^2}{\alpha^2} G \frac{m_c}{\alpha^2} \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi} |^3} \Delta \boldsymbol{\chi} \notag \\
-    &= \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi}|^3} \Delta \boldsymbol{\chi}
-    \label{eq:dimless}
+    \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \frac{t_c^2}{\alpha^2} G \frac{m_c}{\alpha^2} \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi} |^3} \Delta \boldsymbol{\chi}. \notag \\
 \end{align}
-where the last step consisted of requiring that the constants become unity,
+
+By requiring that the constants are unity, that is,
+\[    \frac{t_c^2}{\alpha^4} G m_c = 1 \]
+the expression for the acceleration becomes dimensionless,
 \begin{equation}
-    \frac{t_c^2}{\alpha^4} G m_c = 1
-    \label{eq:unity}
+\frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} = \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi}|^3} \Delta \boldsymbol{\chi}
+    \label{eq:dimless}
 \end{equation}
 
 \section{Results}<+++>
