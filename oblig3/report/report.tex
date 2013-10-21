@@ -40,6 +40,8 @@
 \usepackage{pdfpages}
 \usepackage{float}
 \usepackage{mathtools}
+%\usepackage{etoolbox}
+%\usepackage{xstring}
 
 \floatstyle{plaintop}
 \restylefloat{table}
@@ -53,6 +55,13 @@
 \newcommand{\UA}{\ensuremath{_{\uparrow}}}
 \newcommand{\RA}{\ensuremath{_{\rightarrow}}}
 \newcommand{\QED}{\left\{ \hfill{\textbf{QED}} \right\}}
+
+%\newcommand{\diff}{%
+%    \IfEqCase{frac{\diff}{%
+%        {\ensuremath{frac{\text{d}} }}%
+%        {\ensuremath{\; \text{d}} }% 
+%    }[\PackageError{diff}{Problem with diff}{}]%
+%}%
 
 
 \date{\today}
@@ -128,35 +137,50 @@ The expressions given for the acceleration, eqs.~(\ref{eq:diffx}, \ref{eq:diffy}
 makes the set of equations solvable.
 
 \subsection{Scaling}
-The set of equations that are to be solved can be scaled in order to remove the dependency on units.
+The set of equations that are to be solved can be scaled in order to remove the dependency on units. The variable quantities are factorised into a scaling constant and a dimensionless parameter.
 
-The position can be rewritten $\mathbf{r} \to \alpha \boldsymbol{\chi}$, with components $x \to \alpha \chi_x$ and $y \to \alpha \chi_y$ with $\alpha$ a distance constant and $\boldsymbol{\chi}$ the position parameter.
+\begin{itemize}
+    \item The position can be rewritten $\mathbf{r} \to \alpha \boldsymbol{\chi}$, with components $x \to \alpha \chi_x$ and $y \to \alpha \chi_y$ with $\alpha$ a distance constant and $\boldsymbol{\chi}$ the dimensionless position parameter.
 
-The time units can be rewritten as $t \to t_c \tau$ where $t_c$ is a time constant, and $\tau$ the dimensionless time parameter.
+    \item The time units can be rewritten as $t \to t_c \tau$ where $t_c$ is a time constant, and $\tau$ the dimensionless time parameter.
 
-The mass can be rewritten $m_k = m_c \mu_k$ where $m_c$ is the mass constant and $\mu_k$ is the mass parameter for object $k$.
+    \item The mass can be rewritten $m_k = m_c \mu_k$ where $m_c$ is the mass constant and $\mu_k$ is the mass parameter for object $k$.
 
-The velocity automatically follows the former two rewrites, with 
+    \item The velocity automatically follows the former two rewrites, with 
 \[ \mathbf{v} = \frac{\partial \mathbf{r}}{\partial t} = \frac{\partial (\alpha \boldsymbol{\chi})}{\partial (t_c \tau)} = \frac{\alpha}{t_c} \frac{\partial \boldsymbol{\chi}}{\partial \tau}. \]
 
-The force expression can be rendered dimensionless by using the given rewrites,
-\begin{align}
-    \mathbf{a} = \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{\sum_j \mathbf{F}_{G,j}}{m_k} \notag \\
-    &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \mathbf{r}_j - \mathbf{r}_k |^3} \left( \mathbf{r}_j - \mathbf{r}_k \right) \notag \\
+\item The force expression can be rendered dimensionless by using the given rewrites,
+\begin{align*}
+    \mathbf{a} = \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{\sum_j \mathbf{F}_{G,j}}{m_k} \\
+    &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \mathbf{r}_j - \mathbf{r}_k |^3} \left( \mathbf{r}_j - \mathbf{r}_k \right) \\
     \intertext{Introducing the vectorial difference $\Delta \mathbf{r} \equiv \left( \mathbf{r}_j - \mathbf{r}_k \right)$,}
-         \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \Delta \mathbf{r} |^3} \Delta \mathbf{r}, \notag \\
+         \frac{\partial^2 \mathbf{r}}{\partial t^2} &= \frac{1}{m_k} \sum_j G \frac{m_j m_k}{| \Delta \mathbf{r} |^3} \Delta \mathbf{r}, \\
          \intertext{and substituting in the scaled quantities,}
-    \frac{\alpha^2}{t_c^2} \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \sum_j G \frac{m_c \mu_j}{|\alpha \Delta \boldsymbol{\chi}|^3} \alpha \Delta \boldsymbol{\chi} \notag \\
-    \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \frac{t_c^2}{\alpha^2} G \frac{m_c}{\alpha^2} \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi} |^3} \Delta \boldsymbol{\chi}. \notag \\
-\end{align}
+    \frac{\alpha^2}{t_c^2} \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \sum_j G \frac{m_c \mu_j}{|\alpha \Delta \boldsymbol{\chi}|^3} \alpha \Delta \boldsymbol{\chi} \\
+    \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} &= \frac{t_c^2}{\alpha^2} G \frac{m_c}{\alpha^2} \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi} |^3} \Delta \boldsymbol{\chi}. 
+\end{align*}
 
 By requiring that the constants are unity, that is,
-\[    \frac{t_c^2}{\alpha^4} G m_c = 1 \]
+\[    \frac{t_c^2}{\alpha^4} G m_c = 1, \]
 the expression for the acceleration becomes dimensionless,
 \begin{equation}
-\frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} = \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi}|^3} \Delta \boldsymbol{\chi}
+\frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} = \sum_j \frac{\mu_j}{|\Delta \boldsymbol{\chi}|^3} \Delta \boldsymbol{\chi}.
     \label{eq:dimless}
 \end{equation}
+\end{itemize}
+
+When solving eq.~(\ref{eq:dimless}) numerically, the constants $\alpha$, $t_c$ and $m_c$ must be chosen so that the results can be interpreted physically.
+
+\subsection{Runge-Kutta methods}
+The Runge-Kutta methods are based on predictor-corrector methods, where the slopes in intermediate steps are used to solve 
+\[ \frac{\diff y}{\diff t} = f(t,y) \]
+by integrating
+\[ y_{i+1} = y_i + \int_{t_i}^{t_{i+1}} f(t,y) \diff t \]
+where
+\[ y_i = y(t_i). \]
+
+
+
 
 \section{Results}<+++>
 
