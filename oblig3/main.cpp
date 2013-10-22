@@ -21,7 +21,8 @@ inline double fVel(double fMass, double fRadius) {
 
 int main(int argc, char* argv[]) {
     
-    int N=2400;
+    //int N=2400;
+    int N=5;
     double dt = 1./356;
     double t0 = 0.0;
 
