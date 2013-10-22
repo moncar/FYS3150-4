@@ -14,6 +14,8 @@ template <typename T> int sgn(T val) {
 
 
 inline double fVel(double fMass, double fRadius) {
+    // Calculates the velocity given by the expression
+    // for the centripetal acceleration
     return sqrt(fMass/fRadius);
 }
 
@@ -27,7 +29,7 @@ int main(int argc, char* argv[]) {
     double fMsol = 332946.; // Earth masses
 
     // Adding celestial objects using:
-    // Sol.AddPlanet(Mass, xpos, ypos, xvel, yvel)
+    // Sol.AddPlanet(Mass,      xpos,   ypos,   xvel,   yvel)
     
     // Sun
     Sol.AddPlanet(1.,           0.,     0.,     0.,       0.);
@@ -50,11 +52,15 @@ int main(int argc, char* argv[]) {
     // Neptune
     Sol.AddPlanet(17.147/fMsol, 0., -30.103, fVel(1., 30.103), 0.);
     
-    
+    // Done
+
+    // Set up matrix A: holds initial values for all planets
     mat A = Sol.ConstructArray(N);
 
     cout << "Class has # planets: " << Sol.PlanetCounter() << endl;
 
+    // Send matrix to solver, the class sends the general n-body function
+    // defined in NPARTICLESYSTEM.CPP
     Sol.SolveAll(A, dt, t0);
 
     int nPlanets = Sol.PlanetCounter();    
