@@ -8,10 +8,6 @@
 using namespace std;
 using namespace arma;
 
-//inline arma::vec vF1(arma::vec X) {
-//   return x+2.0;
-//}
-
 template <typename T> int sgn(T val) {
             return (T(0) < val) - (val < T(0));
 }
