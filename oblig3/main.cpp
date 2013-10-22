@@ -17,7 +17,6 @@ template <typename T> int sgn(T val) {
 }
 
 
-
 inline double fVel(double fMass, double fRadius) {
     return sqrt(fMass/fRadius);
 }
