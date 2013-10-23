@@ -110,12 +110,11 @@ which decomposes into
 \end{align}
 where $\theta_j$ denotes the angle between the force from body $j$ and the $x$-axis.
 
-Conditions can also be imposed on the time and mass,
+Conditions can also be imposed on the mass,
 \begin{align}
-    \frac{\partial m}{\partial t} &= 0 \label{eq:diffm} \\
-    \frac{\partial t}{\partial t} &= 1 \label{eq:difft}
+    \frac{\partial m}{\partial t} &= 0 \label{eq:diffm} 
 \end{align}
-giving four equations that has to be solved. 
+giving three differential equations that has to be solved. 
 
 \subsection{Relativistic correction}
 A relativistic correctional factor can be imposed on the gravitational force, which in theory should be able to account for the perihelion precession of Mercury, where its position after one revolution is different from its initial position,
@@ -169,20 +168,146 @@ the expression for the acceleration becomes dimensionless,
 \end{equation}
 \end{itemize}
 
-When solving eq.~(\ref{eq:dimless}) numerically, the constants $\alpha$, $t_c$ and $m_c$ must be chosen so that the results can be interpreted physically.
+When solving eq.~(\ref{eq:dimless}) numerically, the constants $\alpha$, $t_c$ and $m_c$ does not take part of the code, but should be chosen so that the results can be interpreted physically. This also provides a physical interpretation of the step size.
+
+\subsection{Equations that govern a dimensionless $N$-body system}
+The evolution of a $N$-body system is governed by the equations for the acceleration in the $x$- and $y$-directions, eqs.~(\ref{eq:diffx}, \ref{eq:diffy}), that had to be decoupled into a set of equations for the change in velocity and change in position, eqs.~(\ref{eq:velocity}, \ref{eq:position}) the pseudo-differential equation for the mass change, eq.~(\ref{eq:diffm}) and the time development $t_f = t_0 + \sum_i h_i$ where $t_f$ is the final time governed by the initial time $t_0$ and the step lengths $h_i$ that can vary depending on solution method.
+
+To achieve a successful decoupling of the second order differential equation that gives the position, the approach is to first calculate the force on object $k$ from every other object $j$ that it is interacting with, which cannot be done independently for the two coordinate axes, 
+\[ \mathbf{F}_{kj} = \mu_k \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} = \frac{\mu_k \mu_j}{|\Delta \boldsymbol{\chi}_{kj}|^3} \Delta \boldsymbol{\chi}_{kj} \]
+and then project the magnitude and direction of the acceleration onto the axes,
+\[ \left[ \frac{\mathbf{F}_{kj}}{\mu_k} \right]_x = \frac{\mathbf{F}_{kj} \cdot \mathbf{e}_{\chi_x}}{\mu_k} = \frac{F_{kj} \cos \theta}{\mu_k} = \frac{F_{kj}}{\mu_k} \frac{\Delta \chi_{x,kj}}{|\Delta \boldsymbol{\chi}_{kj}|}  \]
+\[ \left[ \frac{\mathbf{F}_{kj}}{\mu_k} \right]_y =  \frac{\mathbf{F}_{kj} \cdot \mathbf{e}_{\chi_y}}{\mu_k} = \frac{F_{kj} \sin \theta}{\mu_k} = \frac{F_{kj}}{\mu_k} \frac{\Delta \chi_{y,kj}}{|\Delta \boldsymbol{\chi}_{kj}|}.  \]
+Note the resemblance to eqs.~(\ref{eq:diffx}, \ref{eq:diffy}). See fig.~(\ref{fig:geometry}) for an illustration of the geometry involved.
+
+This is repeated for every other object $j$ that object $k$ is interacting with, and the acceleration is summed up.
+
+The dimensionless version of the equations that have to be solved are
+\begin{subequations}
+    \begin{align}
+        \frac{\partial^2 \boldsymbol{\chi}}{\partial \tau^2} = \frac{\partial}{\partial \tau} \left( \frac{\partial \boldsymbol{\chi}}{\partial \tau} \right) \equiv \frac{\partial \boldsymbol{\zeta}}{\partial \tau}  &= \frac{\sum_{j\neq k} \mathbf{F}_{kj}}{\mu_k} \\
+        \frac{\partial \boldsymbol{\chi}}{\partial \tau} &= \boldsymbol{\zeta} \\
+        \frac{\partial \mu_k}{\partial \tau} &= 0
+    \end{align}
+    \label{eq:functions}
+\end{subequations}
+where the dimensionless velocity $\boldsymbol{\zeta} \equiv \partial \boldsymbol{\chi}/\partial \tau$ was introduced. The equations apply for every object $k$.
+
+The initial conditions can be determined using two assumptions, ($i$) the bodies' initial velocities are given by the centripetal acceleration between them and the Sun, making them follow a circular orbit, and ($ii$) the bodies positions are given by assuming they follow a circular orbit with radius given as the semi-major axis found in tables. 
+
+The dimensionless centripetal acceleration is given as 
+\begin{equation}
+    \frac{\boldsymbol{\zeta}_k^2}{\Delta \boldsymbol{\chi}_{k\odot}} = \frac{\mathbf{F}_{k\odot}}{\mu_k} = \frac{1}{\mu_k} \frac{\mu_k \mu_j}{|\Delta \boldsymbol{\chi}_{k\odot}|^3} \Delta \boldsymbol{\chi}_{k\odot}
+    \label{eq:centracc}
+\end{equation}
+where the force expression was found by using eq.~(\ref{eq:dimless}), the dimensionless acceleration, and applying this between only two objects, $k$ and $\odot$ where the latter denotes the Sun (or the mother planet when applying the formula to find the velocity for a moon or satellite). Solving for the velocity $\boldsymbol{\zeta}$,
+\[
+    \boldsymbol{\zeta} = \sqrt{\frac{\mu_\odot}{\Delta \boldsymbol{\chi}_{k\odot}}}
+\]
+and assuming a polar coordinate system, the velocity will be the tangential velocity $\zeta$, and the distance $\boldsymbol{\chi}_{k\odot}$ will be the radius $\chi_{k}$ with origin in $\odot$,
+\begin{equation}
+    \zeta = \sqrt{\mu_\odot/ \chi_{k}}.
+    \label{eq:centracc_used}
+\end{equation}
+
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{fig/planetsKJ.pdf}
+    \caption{Geometry and notation involved when measuring distances between two bodies $k$ and $j$, where $\Delta \boldsymbol{\chi}_{kj}$ denotes the vectorial distance between these, $\Delta \chi_{x,kj}$ is the projected distance onto the dimensionless $\chi_x$-axis, and $\Delta \chi_{y,kj}$ is the projected distance onto the dimensionless $\chi_y$-axis. The geometrical identities $\cos \theta = \Delta \chi_{x,kj}/|\Delta \boldsymbol{\chi}_{kj}|$ and $\sin \theta = \Delta \chi_{y,kj}/|\Delta \boldsymbol{\chi}_{kj}|$ are used in the text. } 
+    \label{fig:geometry}
+\end{figure}
+
 
 \subsection{Runge-Kutta methods}
-The Runge-Kutta methods are based on predictor-corrector methods, where the slopes in intermediate steps are used to solve 
+The Runge-Kutta methods are iterative solvers of differential equations, where the solution for a later stage is explicitly calculated using the solution at the prior time step through integration. The Runge-Kutta methods uses the estimated slopes at several points in between one time step $t_i \to t_i + h$ to advance the solution to the next step. This behaviour defines \textit{predictor-corrector methods}. 
+
+To solve
 \[ \frac{\diff y}{\diff t} = f(t,y) \]
-by integrating
+by integrating over the time step $t_i,t_i+h$
 \[ y_{i+1} = y_i + \int_{t_i}^{t_{i+1}} f(t,y) \diff t \]
 where
-\[ y_i = y(t_i). \]
+\[ y_i = y(t_i) \]
+the Runge-Kutta methods calculate the slopes $f(t,y)$ between the endpoints and use these to find the intermediate function values $y_j$ and use a weighted mean of these to find the final step $y_{i+1}$.
+
+The outline for a general Runge-Kutta method is given below.
+\begin{enumerate}
+    \item Given a differential equation, $\diff y/\diff t = f(t,y)$ with an initial solution value $y(t_0) = y_0$, the slope for that $y_0$ is calculated and multiplied by the step length $h$:
+        \[ k_1 = h f(t_0, y_0) \]
+    \item This value, $k_1$, which is an estimate of the solution $y$ at $t_0 + h$, is used to calculate the slope at an intermediate step $t_0 + c_2 h$ where $c_2 \in [0,1]$ gives the amount of progress, whereas the new solution is located at $y(t_0 + c_2 h) = y_0 + a_{21} k_1$ where $a_{21}$ is a similar weighting parameter, but $a_{21}$ may be greater than one or negative. The slope, $f(t_0+c_2 h, \; y_0 + a_{21} k_1)$ is used to calculate
+        \[ k_2 = h f(t_0 + c_2 h, \; y_0 + a_{21} k_1) \]
+        which is an estimate of the solution $y(t_0 + c_2 h)$.
+    \item The foregoing solution estimates $k_1$ and $k_2$ can be used in conjuncture or alone to calculate another estimate of the solution,
+        \[ k_3 = h f(t_0 + c_3 h, \; y_0 + a_{31} k_1 + a_{32} k_2 \]
+        where $c_3 \in [0,1]$ and $c_3 > c_2$. The constants $a_{3j}$ gives the weights that are imposed on the solution estimates $k_j$ for $j=0,1$.
+    \item Further solution estimates $k_j$ for $j=1,2,\dots,m$ can be found using the above approach. In the end, the estimated solution at $t_0 + h$ is found;
+        \[ y (t_0 + h) = y_1 = y_0 + \sum_{j=1}^{m} b_j k_j \]
+        where $b_j$ are weights imposed on each solution approximation, and $\sum_{j=1}^m b_j = 1$. The weights does not have to be positive.
+    \item The method is then repeated for the next time step.
+\end{enumerate}
+
+In general, the constants $c_j$, $a_{ij}$ and $b_j$ can be read off from a Butcher-tableu, 
+\begin{equation}
+    \begin{bmatrix}
+        \begin{array}{c | c c c c c}
+            c_1     & 0     & \dots&        &\dots& 0 \\
+            c_2     & a_{21}&0     &        &   & \vdots \\
+            c_3     & a_{31}&a_{32}& \ddots &   & \\
+            \vdots  & \vdots&      & \ddots & 0 & \vdots \\
+            c_m     & a_{m1}& \dots&        &  a_{m,m-1} & 0 \\
+            \hline
+                    & b_1   & b_2  & \dots  &         & b_m
+        \end{array}
+    \end{bmatrix}
+    = 
+    \begin{bmatrix}
+        \begin{array}{c | c}
+            \mathbf{c}  &  A \\
+            \hline
+                        &  \mathbf{b}^T
+        \end{array}
+    \end{bmatrix}
+    \label{eq:butcher}
+\end{equation}
+named after John C. Butcher who studied the stability properties of implicit Runge-Kutta methods, ie.~in those cases where the matrix $A$ is not strictly lower triangular and the knowledge of a solution at a later stage is required \cite{Butcher:1975}.
+
+The algorithms used in this project has been the Euler-Cromer method\footnote{\url{https://github.com/mariusei/FYS3150/blob/master/oblig3/solver_EC.cpp}}, the fourth-order Runge-Kutta method\footnote{\url{https://github.com/mariusei/FYS3150/blob/master/oblig3/solver_RK4.cpp}} (local truncation error scales as $O(h^5)$), and the adaptive fourth (fifth)-order Dormand Prince method\footnote{\url{https://github.com/mariusei/FYS3150/blob/master/oblig3/solver_DPRI.cpp}} where the relative error between the fifth and fourth order solutions are used to improve the step size.
+
+The forward Euler method can be considered a first order Runge-Kutta, as the local truncation error scales as $O(h^2)$ and is equivalent to only using the solution approximation $k_1$ given in the solver outline above.
+
+\subsection{Vectorisation}
+In order to use the differential equation solvers as standalone modules, these had to be able to accept an initial value vector, a function pointer that works on each vector element (in this project this function is composed of eqs.~(\ref{eq:functions})) and the initial time with time step. 
+
+Numerically this can be implemented as a matrix where the first column consists of the $M$ initial values required by the function, and the remaining $N-1$ columns are to be filled by the solver. 
+
+Technically, the use of a general solver prevents the eqs.~(\ref{eq:functions}) to be implemented as a routine in a class, as this would have changed the data type of the function from e.g.~\texttt{void} to \texttt{ClassName::void} where \texttt{ClassName} is the class' name.
+
+
+\section{Results}
+The method applied to solve the project was to set up a two-body problem and apply the Euler-Cromer scheme on the given differential equations. Gradually, the two-body problem was generalised to a $N$-body problem through the use of a planetary system class and a separate higher order solver. The solution strategy has sought meeting the following aspirations:
+\begin{itemize}
+    \item The class must be general. Each celestial object has to be added through a function-call to a member function of a class instance. 
+    \item The differential equation solver should not be adapted in any way to the problem, but be able to accept general equations in combination with initial values. 
+    \item The results can be read out in a manner that makes it possible to send them as one long array to the file printer procedure used in the earlier projects.
+\end{itemize}
+
+Emphasis has been on creating a physically sound system with planets that orbit a mother star, but the underlying procedures could easily be used to create any other $N$-body system through a different initialisation scheme. 
+
+\subsection{Initial values}
+As initial values, the semi-major axes was chosen as the radii for the celestial objects, and the initial velocity was chosen from eq.~(\ref{eq:centracc_used}).
+
+The length scale chosen has been astronomical units, $\alpha = 1$ AU. A time scale has not been chosen, as it did not explicitly appear in any of the equations. It could theoretically be imposed through the expression for the centripetal acceleration, defining the orbit time $T$ as the time needed to complete one revolution $2 \pi \chi_k$, requiring that the velocity $\zeta = 2\pi \chi_k / T$, and choosing Earth (denoted $\oplus$) as reference planet;
+\[ T = \frac{2\pi \chi_\oplus}{\zeta_\oplus} = \frac{2 \pi}{\zeta_\oplus} \]
+where the tangential velocity is found,
+\[ \zeta_\oplus = \sqrt{\mu_\odot/\chi_\oplus} = \sqrt{1/1} \]
+giving
+\[ T = 2\pi \]
+for Earth, and defining this as the characteristic time, making 
+!!!!!!!!!!!
+one year = 2 pi
 
 
 
-
-\section{Results}<+++>
 
 \section{Discussion and conclusion}<+++>
 
