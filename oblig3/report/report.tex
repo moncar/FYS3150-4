@@ -294,19 +294,22 @@ The method applied to solve the project was to set up a two-body problem and app
 Emphasis has been on creating a physically sound system with planets that orbit a mother star, but the underlying procedures could easily be used to create any other $N$-body system through a different initialisation scheme. 
 
 \subsection{Initial values}
-As initial values, the semi-major axes was chosen as the radii for the celestial objects, and the initial velocity was chosen from eq.~(\ref{eq:centracc_used}).
+As initial values, the semi-major axes was chosen as the radii for the celestial objects, and the initial velocity was chosen from eq.~(\ref{eq:centracc_used}). The masses was found relative to Sun, with $m_\odot = 1 M_\odot$, making $\mu_\odot = 1$ and the characteristic mass $M_\odot$. For conversion it was used that the mass of Earth is $\mu_\oplus = (^1\!/_{332\,946}) \mu_\odot$.
 
-The length scale chosen has been astronomical units, $\alpha = 1$ AU. A time scale has not been chosen, as it did not explicitly appear in any of the equations. It could theoretically be imposed through the expression for the centripetal acceleration, defining the orbit time $T$ as the time needed to complete one revolution $2 \pi \chi_k$, requiring that the velocity $\zeta = 2\pi \chi_k / T$, and choosing Earth (denoted $\oplus$) as reference planet;
+The length scale chosen has been astronomical units, $\alpha = 1$ AU, making the radius Sun-Earth $r_{\oplus} = \alpha \chi_\oplus = 1$ AU. A time scale did not explicitly appear in any of the equations that was numerically implemented. However, to give a physical interpretation, it could be derived from the expression for the centripetal acceleration, defining the dimensionless orbital time $T$ as the time needed to complete one revolution $2 \pi \chi_k$, requiring that the tangential velocity $\zeta = 2\pi \chi_k / T$, and choosing Earth (denoted $\oplus$) as reference planet;
 \[ T = \frac{2\pi \chi_\oplus}{\zeta_\oplus} = \frac{2 \pi}{\zeta_\oplus} \]
-where the tangential velocity is found,
+where the tangential velocity is found from eq.~(\ref{eq:centracc_used}),
 \[ \zeta_\oplus = \sqrt{\mu_\odot/\chi_\oplus} = \sqrt{1/1} \]
 giving
 \[ T = 2\pi \]
-for Earth, and defining this as the characteristic time, making 
-!!!!!!!!!!!
-one year = 2 pi
+for Earth, which corresponds to the physical time $t = 1$ yr, making the time constant $t_c$:
+\begin{align}
+    1\, {\rm yr} = t &= t_c \tau = t_c T = t_c 2\pi \notag \\
+    t_c &= \frac{1\rm\, yr}{2\pi}. 
+    \label{eq:time}
+\end{align}
 
-
+The momentum in the system should be conserved, however this is not the case if the celestial objects are given random positions and initial tangential velocities according to eq.~(\ref{eq:centracc_used}). However, this can be solved by first adding all the planets, finding their total momentum with direction and then adding Sun, requiring that its momentum cancel out that of the planetary system.
 
 
 \section{Discussion and conclusion}<+++>
