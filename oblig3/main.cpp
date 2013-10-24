@@ -21,9 +21,10 @@ inline double fVel(double fMass, double fRadius) {
 
 int main(int argc, char* argv[]) {
     
-    //int N=2400;
-    int N=5;
-    double dt = 1./356;
+    int N=670; //365/2;
+    //int N=5;
+    double pi = 4*atan(1);
+    double dt = 2*pi/365;
     double t0 = 0.0;
 
     SolarSystem Sol;
