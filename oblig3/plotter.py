@@ -27,6 +27,11 @@ N1 = len(data1[:,0])
 #N2 = len(data2[:,0])
 #N3 = len(data3[:,0])
 
+if N1 > 1e6:
+    slice = 10
+else:
+    slice = 1
+
 # Find max. error value
 # data[x  true u(x)   est v(x)   error]
 #for data in [data1, data2, data3]:
@@ -44,15 +49,16 @@ plt.rc('font', family='serif')
 ax1 = fig.add_subplot(111)
 #ax2 = ax1.twinx()
 
-p10, = ax1.plot(data1[:,1],data1[:,2], 'y-x')
-p11, = ax1.plot(data1[:,3],data1[:,4], 'b-')
-p12, = ax1.plot(data1[:,5],data1[:,6], 'r-')
-p13, = ax1.plot(data1[:,7],data1[:,8], 'g-,')
-p14, = ax1.plot(data1[:,9],data1[:,10], 'b-')
-p15, = ax1.plot(data1[:,11],data1[:,12], 'y-')
-p16, = ax1.plot(data1[:,13],data1[:,14], 'g-')
-p17, = ax1.plot(data1[:,15],data1[:,16], 'g-')
-p18, = ax1.plot(data1[:,17],data1[:,18], 'g-')
+p10, = ax1.plot(data1[:,1,slice],data1[:,2,slice], 'k-')
+p11, = ax1.plot(data1[:,3,slice],data1[:,4,slice], 'y-')
+p12, = ax1.plot(data1[:,5,slice],data1[:,6,slice], 'b-')
+p13, = ax1.plot(data1[:,7,slice],data1[:,8,slice], 'kx')
+p14, = ax1.plot(data1[:,9,slice],data1[:,10,slice], 'r-')
+p15, = ax1.plot(data1[:,11,slice],data1[:,12,slice], 'y-')
+p16, = ax1.plot(data1[:,13,slice],data1[:,14,slice], 'g-')
+p17, = ax1.plot(data1[:,15,slice],data1[:,16,slice], 'm-')
+p18, = ax1.plot(data1[:,17,slice],data1[:,18,slice], 'g-')
+p19, = ax1.plot(data1[:,19,slice],data1[:,20,slice], 'y-x')  # SUN
 
 #p2, = ax1.plot(data2[:,0],data2[:,1], color='k', linestyle='-.', linewidth=3)
 #p31, = ax2.plot(data1[:,0],data1[:,1], linestyle='--')

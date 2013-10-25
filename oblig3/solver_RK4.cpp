@@ -2,7 +2,7 @@
 
 // Swallows functions, initial values and solution arrays
 
-//#include <iostream>
+#include <iostream>
 //#include <cmath>
 #include <armadillo>
 
@@ -11,35 +11,39 @@
 using namespace std;
 using namespace arma;
 
-void solver_RK4(   arma::vec (*vFuncIn)(arma::vec, arma::vec) \
+void solver_RK4(   arma::vec (*vFuncIn)(double, arma::vec) \
                 , arma::mat *X \
                 , int N \
                 , int M \
+                , double dT0 \
                 , double dStep) 
 {
-    // Function: vFuncIn( X(i), X(i+1) )
+    // Function: vFuncIn( t, X(i) )
 
     // Routine
     
+    arma::vec k1(M), k2(M), k3(M), k4(M);
+    double ti = dT0;
+
     for (int iii=0; iii<N-1; iii++) {
         // Iterate until the end of the array
-        for (int j=0; j<M; j++) {
+        //for (int j=0; j<M; j++) {
             // Iterate through each equation
             // Recalculate each of them as dStep could change (later)
             
-            arma::vec k1 = (*vFuncIn)(X->col(iii), X->col(iii+1));
-            arma::vec k2 = (*vFuncIn)(X->col(iii) + k1*0.5*dStep,\
+            k1 = (*vFuncIn)(ti, X->col(iii));
+            k2 = (*vFuncIn)(ti + 0.5*dStep,\
                    X->col(iii) + k1*0.5*dStep) ;
-            arma::vec k3 = (*vFuncIn)(X->col(iii) + k2*0.5*dStep,\
+            k3 = (*vFuncIn)(ti + 0.5*dStep,\
                    X->col(iii) + k2*0.5*dStep) ;
-            arma::vec k4 = (*vFuncIn)(X->col(iii) + k3*dStep, \
+            k4 = (*vFuncIn)(ti + dStep, \
                    X->col(iii) + k3*dStep) ;
-
-
 
             X->col(iii+1) = X->col(iii) + \
                           1./6 * dStep * (k1 + 2*k2 + 2*k3 + k4);
-        }
+
+        //}
+        ti += dStep;
     }
 
 
