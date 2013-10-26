@@ -21,10 +21,10 @@ inline double fVel(double fMass, double fRadius) {
 
 int main(int argc, char* argv[]) {
     
-    int N= 3650*1000; // 414 Mercury years 414*10*88; //365/2;
+    int N= 100*365; // 414 Mercury years 414*10*88; //365/2;
     //int N=5;
     double pi = 4*atan(1);
-    double dt = 2*pi/365/10;
+    double dt = 2*pi/365/100;
     double t0 = 0.0;
 
     SolarSystem Sol;
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     // Moon
     Sol.AddPlanet(0.0123/fMsol, 1.00257,0.,0., 1.+ fVel(1./fMsol, 0.00257));
     // Mars
-    Sol.AddPlanet(0.107/fMsol, -1.523679, 0., 0., fVel(1., 1.523679));
+    Sol.AddPlanet(0.107/fMsol, -1.523679, 0., 0.,  fVel(1., 1.523679));
     // Jupiter
     Sol.AddPlanet(95.152/fMsol, 0., 9.582, fVel(1., 9.582), 0.);
     // Saturn
@@ -98,6 +98,7 @@ int main(int argc, char* argv[]) {
     // Pass time, position to file
     
     double* POS = new double[2*nPlanets*N];
+    double* VEL = new double[2*nPlanets*N];
     double* TIME= new double[N];
 
     for (int iii=0; iii<N; iii++) {
@@ -109,18 +110,21 @@ int main(int argc, char* argv[]) {
             int subscript = 2*ppp;
             POS[kkk +  subscript *N] = A(ppp*5+2,kkk);
             POS[kkk +  (subscript+1) *N] = A(ppp*5+3,kkk);
+            VEL[kkk +  subscript *N] = A(ppp*5,kkk);
+            VEL[kkk +  (subscript+1) *N] = A(ppp*5+1,kkk);
             
             //TIME[kkk]   = A(5*nPlanets,kkk);
         }
     }
 
-    if (argc < 2) {
+    if (argc < 3) {
         cout << "ERROR! Missing output file specification:\n \
-                \t ./obl3.x outputfile.txt" << endl;
+                \t ./obl3.x outputfile_position.txt output_vel.txt" << endl;
         exit(1);
     }
     else {
         outputFile(N, 2*nPlanets, TIME, POS, &argv[1]);
+        outputFile(N, 2*nPlanets, TIME, VEL, &argv[2]);
     }
     
     // // //    DONE: SAVE TO FILE    // // //

@@ -311,6 +311,32 @@ for Earth, which corresponds to the physical time $t = 1$ yr, making the time co
 
 The momentum in the system should be conserved, however this is not the case if the celestial objects are given random positions and initial tangential velocities according to eq.~(\ref{eq:centracc_used}). However, this can be solved by first adding all the planets, finding their total momentum with direction and then adding Sun, requiring that its momentum cancel out that of the planetary system.
 
+\subsection{Simulations}
+In fig.~(\ref{fig:31}), a full scale simulation of the solar system with Sunand the eigth planets. It was run with a time step on $1/365$ of a Earth year, or $2\pi /365$ of the characteristic time $t_c$. 
+
+In fig.~(\ref{fig:32}) a closer look on the orbit of the Moon around Earth is shown. The relative $x$- and $y$-positions of the moon to Earth was calculated for a simulation spanning one Earth year, with a resulotion on 1/100th of a day. A fast-fourier transform of the plot gives a dominating frequency on 14 Moon cycles around Earth per year.
+
+In fig.~(\ref{fig:33}) the kinetic energy of Venus is plotted for the entire time series. 
+
+Further simulations were performed to assess the behaviour of the solar system under the influcene from a heavier Jupiter. 
+
+Fig.~(\ref{fig:34-jup1}) shows the behaviour of the solar system under the influence of Jupiter with ten times its physical mass. Fig.~(\ref{fig:34-jup2}) shows the solar system where Jupiter has 1000 times its phyiscal mass.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig31.eps}
+    \caption{A simulation showing the solar system with Sun marked as a yellow cross in origin, and the eight planets orbiting. The simulation was run with a time step $\diff \tau = 2\pi/365$, the equivalent of one Earth day, for a total of 165 Earth years, corresponding to one Neptune year. One relative distance unit $\chi$ corresponds to the physical distance 1 AU, the distance Earth-Sun. }
+    \label{fig:31}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig32-moonrad.eps}
+    \caption{The relative $x$- and $y$-distances from Moon to Earth plotted for one Earth year. A FFT-transform of the same data shows that both $x$- and $y$-distances have one dominant peak with a frequency on 14 cycles per year.}
+    \label{fig:32}
+\end{figure}
+
+
 
 \section{Discussion and conclusion}<+++>
 

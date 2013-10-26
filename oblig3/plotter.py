@@ -27,6 +27,8 @@ N1 = len(data1[:,0])
 #N2 = len(data2[:,0])
 #N3 = len(data3[:,0])
 
+print "Length of arrays to plot: ", N1
+
 if N1 > 1e6:
     slice = 10
 else:
@@ -49,16 +51,19 @@ plt.rc('font', family='serif')
 ax1 = fig.add_subplot(111)
 #ax2 = ax1.twinx()
 
-p10, = ax1.plot(data1[:,1,slice],data1[:,2,slice], 'k-')
-p11, = ax1.plot(data1[:,3,slice],data1[:,4,slice], 'y-')
-p12, = ax1.plot(data1[:,5,slice],data1[:,6,slice], 'b-')
-p13, = ax1.plot(data1[:,7,slice],data1[:,8,slice], 'kx')
-p14, = ax1.plot(data1[:,9,slice],data1[:,10,slice], 'r-')
-p15, = ax1.plot(data1[:,11,slice],data1[:,12,slice], 'y-')
-p16, = ax1.plot(data1[:,13,slice],data1[:,14,slice], 'g-')
-p17, = ax1.plot(data1[:,15,slice],data1[:,16,slice], 'm-')
-p18, = ax1.plot(data1[:,17,slice],data1[:,18,slice], 'g-')
-p19, = ax1.plot(data1[:,19,slice],data1[:,20,slice], 'y-x')  # SUN
+p10, = ax1.plot(data1[::slice,1], data1[::slice, 2], 'k-')
+p11, = ax1.plot(data1[::slice,3], data1[::slice, 4], 'y-')
+p12, = ax1.plot(data1[::slice,5], data1[::slice, 6], 'b-')
+p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'kx')
+p14, = ax1.plot(data1[::slice,9], data1[::slice,10], 'r-')
+#p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'r-')
+#p14, = ax1.plot(data1[::slice,9], data1[::slice,10], 'c-')
+p15, = ax1.plot(data1[::slice,11],data1[::slice,12], 'y-')
+p16, = ax1.plot(data1[::slice,13],data1[::slice,14], 'g-')
+p17, = ax1.plot(data1[::slice,15],data1[::slice,16], 'b-')
+p18, = ax1.plot(data1[::slice,17],data1[::slice,18], 'g-')
+#p19, = ax1.plot(data1[::slice,17],data1[::slice,18], 'y-x')  # SUN
+p19, = ax1.plot(data1[::slice,19],data1[::slice,20], 'y-x')  # SUN
 
 #p2, = ax1.plot(data2[:,0],data2[:,1], color='k', linestyle='-.', linewidth=3)
 #p31, = ax2.plot(data1[:,0],data1[:,1], linestyle='--')
