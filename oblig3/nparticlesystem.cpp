@@ -28,11 +28,11 @@ arma::vec aSystem(double dTi, arma::vec Xi) {
 
     for (int k=0; k<nPlanets; k++) {
         //double fFtot = 0;   // Total force on each planet k
-        double fFtotx= 0;   //  x-component
-        double fFtoty= 0;   //  y-component
-        double fFloc = 0;   // Force on planet k from planet j
-        double fFlocx= 0;   //  x-component
-        double fFlocy= 0;   //  y-component
+        double fFtotx= 0.;   //  x-component
+        double fFtoty= 0.;   //  y-component
+        double fFloc = 0.;   // Force on planet k from planet j
+        double fFlocx= 0.;   //  x-component
+        double fFlocy= 0.;   //  y-component
         
         for (int j=0; j<nPlanets; j++) {
             if (j != k) {
