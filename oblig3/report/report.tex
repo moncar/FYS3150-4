@@ -197,7 +197,7 @@ The initial conditions can be determined using two assumptions, ($i$) the bodies
 
 The dimensionless centripetal acceleration is given as 
 \begin{equation}
-    \frac{\boldsymbol{\zeta}_k^2}{\Delta \boldsymbol{\chi}_{k\odot}} = \frac{\mathbf{F}_{k\odot}}{\mu_k} = \frac{1}{\mu_k} \frac{\mu_k \mu_j}{|\Delta \boldsymbol{\chi}_{k\odot}|^3} \Delta \boldsymbol{\chi}_{k\odot}
+    \frac{\boldsymbol{\zeta}_k^2}{\Delta \boldsymbol{\chi}_{k\odot}} = \frac{\mathbf{F}_{k\odot}}{\mu_k} = \frac{1}{\mu_k} \frac{\mu_k \mu_\odot}{|\Delta \boldsymbol{\chi}_{k\odot}|^3} \Delta \boldsymbol{\chi}_{k\odot}
     \label{eq:centracc}
 \end{equation}
 where the force expression was found by using eq.~(\ref{eq:dimless}), the dimensionless acceleration, and applying this between only two objects, $k$ and $\odot$ where the latter denotes the Sun (or the mother planet when applying the formula to find the velocity for a moon or satellite). Solving for the velocity $\boldsymbol{\zeta}$,
@@ -312,15 +312,17 @@ for Earth, which corresponds to the physical time $t = 1$ yr, making the time co
 The momentum in the system should be conserved, however this is not the case if the celestial objects are given random positions and initial tangential velocities according to eq.~(\ref{eq:centracc_used}). However, this can be solved by first adding all the planets, finding their total momentum with direction and then adding Sun, requiring that its momentum cancel out that of the planetary system.
 
 \subsection{Simulations}
-In fig.~(\ref{fig:31}), a full scale simulation of the solar system with Sunand the eigth planets. It was run with a time step on $1/365$ of a Earth year, or $2\pi /365$ of the characteristic time $t_c$. 
+In fig.~(\ref{fig:31}), a full scale simulation of the solar system with Sun and the eight planets is plotted.  The time step was $1/365$ of a Earth year, or $2\pi /365$ of the characteristic time $t_c$. 
 
-In fig.~(\ref{fig:32}) a closer look on the orbit of the Moon around Earth is shown. The relative $x$- and $y$-positions of the moon to Earth was calculated for a simulation spanning one Earth year, with a resulotion on 1/100th of a day. A fast-fourier transform of the plot gives a dominating frequency on 14 Moon cycles around Earth per year.
+In fig.~(\ref{fig:32}) a closer look on the orbit of Moon around Earth is shown. The relative $x$- and $y$-positions of Moon to Earth were calculated for a simulation spanning one Earth year, with a resolution on 1/100th of a day. A fast-Fourier transform of the data gives a dominating frequency on 14 Moon cycles around Earth per year, and for data spanning ten Earth years with the same resolution, the dominant frequency is 13.7 cycles per year. 
 
-In fig.~(\ref{fig:33}) the kinetic energy of Venus is plotted for the entire time series. 
+In fig.~(\ref{fig:33}) the kinetic and potential energy of Venus is plotted for ten Earth years. The plot shows the relative magnitudes compared to the time averaged absolute values of the potential energy. A plot showing the virial theorem, $2\langle K \rangle + \langle V \rangle + \sum F_{\rm ext} = 0$ is also included. The time averaged kinetic energy, $\langle K \rangle$ should contribute half as much as the time averaged potential energy $\langle V \rangle $ to a sum that goes to zero in the absence of any external, non-conservative forces $\sum \langle F_{\rm ext} \rangle$. 
 
-Further simulations were performed to assess the behaviour of the solar system under the influcene from a heavier Jupiter. 
+To calculate the potential energy, the centre-of-mass (COM) was found for all the other celestial objects. This was then used in a two-body relation for the potential energy $V = G M_{\rm COM} M_2 / \Delta r$ between the centre-of-mass $M_{\rm COM}$ and $M_2$, the mass of the planet that was analysed, in this case Venus, with radius $\Delta r$ to the COM-origin.\footnote{See the function \texttt{SolarSystem::PotEnergy} in \url{https://github.com/mariusei/FYS3150/blob/master/oblig3/SolarSystem.cpp}.} 
 
-Fig.~(\ref{fig:34-jup1}) shows the behaviour of the solar system under the influence of Jupiter with ten times its physical mass. Fig.~(\ref{fig:34-jup2}) shows the solar system where Jupiter has 1000 times its phyiscal mass.
+Further simulations were performed to assess the behaviour of the solar system under the influence from a heavier Jupiter. 
+
+Fig.~(\ref{fig:34}) shows the behaviour of the solar system where Jupiter starts with ten times its physical mass, with a closer look in fig.~(\ref{fig:34b}). Fig.~(\ref{fig:35}) shows the solar system where Jupiter has 1000 times its physical mass, with a closer look on the inner system in fig.~(\ref{fig:35b}). Here, the Sun is thrown into a circular orbit, with planets orbiting it.   
 
 \begin{figure}[htb]
     \centering
@@ -332,11 +334,44 @@ Fig.~(\ref{fig:34-jup1}) shows the behaviour of the solar system under the influ
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\columnwidth]{fig/fig32-moonrad.eps}
-    \caption{The relative $x$- and $y$-distances from Moon to Earth plotted for one Earth year. A FFT-transform of the same data shows that both $x$- and $y$-distances have one dominant peak with a frequency on 14 cycles per year.}
+    \caption{The relative $x$- and $y$-distances from Moon to Earth plotted for one Earth year. A FFT-transform of the same data shows that both $x$- and $y$-distances have one dominant peak with a frequency on 14 cycles per year. An analysis of Moon's orbit over ten Earth years gives a dominant frequency on 13.7 cycles per year.}
     \label{fig:32}
 \end{figure}
 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig33-virial.eps}
+    \caption{The kinetic and potential energy of Venus was calculated using dimensionless units, and then scaled using the mean of the absolute values of the potential energy. The combined energy should behave according to the virial theorem, $2\langle K \rangle + \langle V \rangle + \sum \langle F_{\rm ext} \rangle = 0$, where $\langle K \rangle$ is the time-averaged kinetic energy, $\langle V \rangle $ is the time-averaged potential energy, and $\sum \langle F_{\rm ext} \rangle$ denotes any non-conservative external forces on the system, in this case there should be none. Note that the dominating oscillations are in the potential energy.}
+    \label{fig:33}
+\end{figure}
 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig34-jupiter100.eps}
+    \caption{Inner solar system with Jupiter as the outermost planet. Simulation run for 100 Earth years with a time step on $^1\!/_{10}$-th of a Earth day, where the mass of Jupiter is increased by a factor of 100. Note that Jupiter retains its orbit to some degree, and does not collapse towards Sun, as the centripetal acceleration is independent of its mass according to eq.~(\ref{eq:centracc_used}), however it causes strong disruptions of the orbits of the inner planets and Sun. See fig.~(\ref{fig:34b}) for the innermost part of the system.}
+    \label{fig:34}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig34-jupiter100_detail.eps}
+    \caption{Inner solar system under the influence of Jupiter with a mass increased by a factor of 100. Simulation run for 100 Earth years. The planets are color coded: Mars: red, Earth: blue, Venus: yellow, Mercury: black. Sun is also colored yellow, and has the innermost yellow orbit.}
+    \label{fig:34b}
+\end{figure}
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig35-jupiter1000.eps}
+    \caption{Solar system simulated for a period of 100 Earth years with a time step on $^1\!/_{100}$th of a Earth day where the mass of Jupiter is increased by a factor of 1000. Jupiter is the innermost green planet, and starts from approximately five AU north of origin. See fig.~(\ref{fig:35b}) for the evolution of the inner solar system.}
+    \label{fig:35}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig35-jupiter1000_detail.eps}
+    \caption{The inner solar system simulated over a period of 100 Earth years, where the mass of Jupiter has been increased by a factor of 1000, see fig.~(\ref{fig:35}) for the evolution of the entire solar system over the same period. Note that the innermost planets continue to orbit Sun, but where Sun orbits with a radius of approximately 2.8 AU to origin.}
+    \label{fig:35b}
+\end{figure}
 
 \section{Discussion and conclusion}<+++>
 
