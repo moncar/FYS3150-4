@@ -27,12 +27,17 @@ N1 = len(data1[:,0])
 #N2 = len(data2[:,0])
 #N3 = len(data3[:,0])
 
+# Find no. of planets
+nK = len(data1[0,:] - 1)/2
+
 print "Length of arrays to plot: ", N1
+print "Number of planets to plot: ", nK
 
 if N1 > 1e3:
     slice = 100
 else:
     slice = 1
+
 
 # Find max. error value
 # data[x  true u(x)   est v(x)   error]
@@ -50,29 +55,21 @@ plt.rc('font', family='serif')
 
 ax1 = fig.add_subplot(111)
 #ax2 = ax1.twinx()
+ax1labels = []
+linestyles = ['k-', 'y-', 'b-', 'kx', 'r-', 'y-', 'c-', 'b-', 'g-']
 
-p10, = ax1.plot(data1[::slice,1], data1[::slice, 2], 'k-')
-p11, = ax1.plot(data1[::slice,3], data1[::slice, 4], 'y-')
-p12, = ax1.plot(data1[::slice,5], data1[::slice, 6], 'b-')
-#p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'kx')
-p14, = ax1.plot(data1[::slice,9], data1[::slice,10], 'r-')
-#p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'r-')
-#p14, = ax1.plot(data1[::slice,9], data1[::slice,10], 'c-')
-p15, = ax1.plot(data1[::slice,11],data1[::slice,12], 'y-')
-p16, = ax1.plot(data1[::slice,13],data1[::slice,14], 'g-')
-p17, = ax1.plot(data1[::slice,15],data1[::slice,16], 'b-')
-p18, = ax1.plot(data1[::slice,17],data1[::slice,18], 'g-')
-#p19, = ax1.plot(data1[::slice,17],data1[::slice,18], 'y-x')  # SUN
-p19, = ax1.plot(data1[::slice,19],data1[::slice,20], 'y-x')  # SUN
+for i in xrange(0,nK-1):
+    # Plot planets, last item is Sun
+    ax1.plot(data1[::slice,2*i+1], data1[::slice, 2*i+2], linestyles[i])
 
-#p2, = ax1.plot(data2[:,0],data2[:,1], color='k', linestyle='-.', linewidth=3)
-#p31, = ax2.plot(data1[:,0],data1[:,1], linestyle='--')
-#p32, = ax2.plot(data2[:,0],data2[:,1], linestyle='--') 
-#p33, = ax2.plot(data3[:,0],data3[:,1], linestyle='--') 
+p19, = ax1.plot(data1[::slice,2*nK-1],data1[::slice,2*nK], 'y-x')  # SUN
+
+
 ax1.set_xlabel(r'Rel. $x$-position ' + r'$\chi_x$', fontsize=14)
 ax1.set_ylabel(r'Rel. $y$-position ' + r'$\chi_y$', fontsize=14)
-#ax2.set_ylabel(r'\log_{10}$(Rel. error)', fontsize=14)
-#ax1.set_ylim([0, 2])
+#ax1.set_ylim([-4, 4])
+#ax1.set_xlim([-4, 4])
+
 #ax2.set_ylim([-3, 5])
 #ax1grid()
 #ax2.grid()
