@@ -12,6 +12,14 @@ arma::vec aSystem(double dT0, arma::vec Xii);
 
 #endif
 
+#ifndef asystemrel_H
+#define asystemrel_H
+
+arma::vec aSystemRel(double dT0, arma::vec Xii);
+
+#endif
+
+
 
 
 #ifndef fvel_H
@@ -25,10 +33,11 @@ inline double fVel(double fMass, double fRadius);
 #ifndef solver_EC_H
 #define solver_EC_H
 
-void solver_EC(   arma::vec (*vFuncIn)(arma::vec, arma::vec) \
+void solver_EC(   arma::vec (*vFuncIn)(double, arma::vec, arma::vec) \
                 , arma::mat *X \
                 , int N \
                 , int M \
+                , double dT0 \
                 , double dStep); 
 
 #endif
