@@ -29,8 +29,8 @@ N1 = len(data1[:,0])
 
 print "Length of arrays to plot: ", N1
 
-if N1 > 1e6:
-    slice = 10
+if N1 > 1e3:
+    slice = 100
 else:
     slice = 1
 
@@ -54,7 +54,7 @@ ax1 = fig.add_subplot(111)
 p10, = ax1.plot(data1[::slice,1], data1[::slice, 2], 'k-')
 p11, = ax1.plot(data1[::slice,3], data1[::slice, 4], 'y-')
 p12, = ax1.plot(data1[::slice,5], data1[::slice, 6], 'b-')
-p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'kx')
+#p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'kx')
 p14, = ax1.plot(data1[::slice,9], data1[::slice,10], 'r-')
 #p13, = ax1.plot(data1[::slice,7], data1[::slice, 8], 'r-')
 #p14, = ax1.plot(data1[::slice,9], data1[::slice,10], 'c-')
