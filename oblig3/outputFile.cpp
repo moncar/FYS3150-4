@@ -13,6 +13,7 @@ ofstream ofile;
 
 void outputFile(int N, int cols,double *fX,double *fCalcX, char *filename[])
 {
+    cout << "File-printer module: printing to: " << filename[0] << endl;
     ofile.open(filename[0]);
     ofile << setiosflags(ios::showpoint | ios::uppercase);
     for(int i=0; i < N; i++)
