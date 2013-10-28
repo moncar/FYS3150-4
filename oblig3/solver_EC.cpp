@@ -11,15 +11,17 @@
 using namespace std;
 using namespace arma;
 
-void solver_EC(   arma::vec (*vFuncIn)(arma::vec, arma::vec) \
+void solver_EC(   arma::vec (*vFuncIn)(double, arma::vec, arma::vec) \
                 , arma::mat *X \
                 , int N \
                 , int M \
+                , double dT0 \
                 , double dStep) 
 {
-    // Function: vFuncIn( X(i), X(i+1) )
+    // Function: vFuncIn( t, X(i), X(i+1) )
 
     // Routine
+    double ti = dT0;
     
     for (int iii=0; iii<N-1; iii++) {
         // Iterate until the end of the array
@@ -27,8 +29,10 @@ void solver_EC(   arma::vec (*vFuncIn)(arma::vec, arma::vec) \
             // Iterate through each equation
             // Recalculate each of them as dStep could change (later) 
             X->col(iii+1) = X->col(iii) + \
-                          (*vFuncIn)(X->col(iii), X->col(iii+1)) * dStep ;
+                          (*vFuncIn)(ti, X->col(iii), X->col(iii+1)) *dStep;
         }
+        ti += dStep;
+
     }
 
 
