@@ -78,8 +78,8 @@ plt.rc('font', family='serif')
 ax1 = fig.add_subplot(111)
 #ax2 = ax1.twinx()
 
-minsindex = minsindex[0:-2]
-mins = mins[0:-2]
+#minsindex = minsindex[0:-2]
+#mins = mins[0:-2]
 
 #p10, = ax1.plot(data1[:,0], r, 'k-')
 
@@ -87,6 +87,9 @@ print max(mins)
 print min(mins)
 
 p11, = ax1.plot(data1[minsindex,0]/(2*pi) , mins, 'r-')
+
+ax1.set_xlabel(r'Time [yr]', fontsize=14)
+ax1.set_ylabel(r'Perihelon angle $\tan \theta_p$ ', fontsize=14)
 
 plt.show()
 
