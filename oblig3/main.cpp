@@ -21,7 +21,7 @@ inline double fVel(double fMass, double fRadius) {
 
 int main(int argc, char* argv[]) {
     
-    int N= 100*365; // 414 Mercury years 414*10*88; //365/2;
+    int N= 10000*365; // 414 Mercury years 414*10*88; //365/2;
     //int N=5;
     double pi = 4*atan(1);
     double dt = 2*pi/365/100;
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     // Mars
     Sol.AddPlanet(0.107/fMsol, -1.523679, 0., 0.,  fVel(1., 1.523679));
     // Jupiter
-    Sol.AddPlanet(95.152/fMsol, 0., 9.582, fVel(1., 9.582), 0.);
+    Sol.AddPlanet(1000 * 95.152/fMsol, 0., 9.582, fVel(1., 9.582), 0.);
     // Saturn
     Sol.AddPlanet(317.8/fMsol, 0., 5.204267, fVel(1., 5.204267), 0.);
     // Uranus
@@ -66,7 +66,6 @@ int main(int argc, char* argv[]) {
     // Find momentum of system:
     double Px, Py, Mtot;
     Sol.TotMomentum(Px, Py, Mtot);
-    cout << Px << " " << Py << " " << Mtot << endl;
 
     // Require that Sun has tot momentum opposite to system
     double VxSun, VySun, mSun;
@@ -92,39 +91,57 @@ int main(int argc, char* argv[]) {
     int nPlanets = Sol.PlanetCounter();    
 
     //A.print();
+    
+    // Calculate potential energy of a celestial body
+    // Must initialise arrays to hold
+    // - COM of rest of system
+    // - Calculated potential energy, unitless
+
+    vec COMx(N);
+    vec COMy(N);
+    vec pot(N);
+
+    int planetno = 1;   // Venus
+
+    //Sol.PotEnergy(A, COMx, COMy, pot, N, planetno);
 
     
     // // //    SAVE TO FILE    // // //
-    // Pass time, position to file
+    // Pass time, position, velocity, potential energy to file
     
     double* POS = new double[2*nPlanets*N];
     double* VEL = new double[2*nPlanets*N];
     double* TIME= new double[N];
+    double* POTE= new double[N];
 
     for (int iii=0; iii<N; iii++) {
         TIME[iii] = t0 + iii*dt;
     }
-
+    
+    cout << "Storing items in arrays for saving." << endl;
     for (int ppp=0; ppp<nPlanets; ppp++) {
         for (int kkk=0; kkk<N; kkk++) {
             int subscript = 2*ppp;
             POS[kkk +  subscript *N] = A(ppp*5+2,kkk);
             POS[kkk +  (subscript+1) *N] = A(ppp*5+3,kkk);
-            VEL[kkk +  subscript *N] = A(ppp*5,kkk);
-            VEL[kkk +  (subscript+1) *N] = A(ppp*5+1,kkk);
+            //VEL[kkk +  subscript *N] = A(ppp*5,kkk);
+            //VEL[kkk +  (subscript+1) *N] = A(ppp*5+1,kkk);
+            //POTE[kkk] = pot(kkk);
             
             //TIME[kkk]   = A(5*nPlanets,kkk);
         }
     }
 
-    if (argc < 3) {
+    if (argc < 4) {
         cout << "ERROR! Missing output file specification:\n \
-                \t ./obl3.x outputfile_position.txt output_vel.txt" << endl;
+                \t ./obl3.x outputfile_position.txt output_vel.txt output_energy.txt" << endl;
         exit(1);
     }
     else {
+        cout << "Sent data to file-printer module..." << endl;
         outputFile(N, 2*nPlanets, TIME, POS, &argv[1]);
-        outputFile(N, 2*nPlanets, TIME, VEL, &argv[2]);
+        //outputFile(N, 2*nPlanets, TIME, VEL, &argv[2]);
+        //outputFile(N, 1, TIME, POTE, &argv[3]);
     }
     
     // // //    DONE: SAVE TO FILE    // // //
@@ -132,6 +149,8 @@ int main(int argc, char* argv[]) {
     // Housekeeping
     delete [] POS;
     delete [] TIME;
+    delete [] VEL;
+    delete [] POTE;
 
 
     return 0;
