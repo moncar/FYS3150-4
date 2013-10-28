@@ -24,7 +24,7 @@ set border 0
 unset tics
 set view 342,0
 set xrange [-2:3]
-set yrange [-5:20]
+set yrange [-15:15]
 
 # rotate
 n=0
