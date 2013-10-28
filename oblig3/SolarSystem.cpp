@@ -51,11 +51,11 @@ inline double SolarSystem::Radius(double x, double y) {
 }
 
 void SolarSystem::TotMomentum(double& dPX, double& dPY, double& dM)
-// Return total momentum for composite system from initial conditions
-// Arguments will be changed
-// dPX = COM momentum in x-dir
-// dPY = COM momentum in y-dir
-// dM  = total mass
+    // Return total momentum for composite system from initial conditions
+    // Arguments will be changed
+    // dPX = COM momentum in x-dir
+    // dPY = COM momentum in y-dir
+    // dM  = total mass
 {
     // Find momentum:
     // P = sum_i (m_i v_i)
@@ -65,6 +65,53 @@ void SolarSystem::TotMomentum(double& dPX, double& dPY, double& dM)
         dM  += M[i];
     }
 }
+
+void SolarSystem::PotEnergy(arma::mat &Y     /* Holding all pos&vel  */ \
+                        ,   arma::vec &aCOMx /* To hold: COM x-coord */ \
+                        ,   arma::vec &aCOMy /* To hold: COM y-coord */ \
+                        ,   arma::vec &aPot  /* To hold: calc pot. energy*/\
+                        ,   int nIterations  /* No of iterations */\
+                        ,   int nPlanetNo    /* Chosen planet/object */ )
+    // Find potential energy at all time steps for planet nPlanetNo
+    // through a calculation of:
+    //      - COM for all other planets
+    //      - Radius: COM <-> planet nPlanetNo
+    //      - Finding potential energy between two bodies
+{
+    
+    // Find total mass for system, except planet to be analysed:
+    for (int i=0; i<nPlanets; i++) {
+       fMtot += M[i];
+    }
+    fMtot -= M[nPlanetNo];
+
+    // Calculate for each time step:
+    for (int i=0; i<nIterations; i++) {
+        COMx = 0.;
+        COMy = 0.;
+        for (int j=0; j<nPlanets; j++) {
+            COMx += M[j] * Y(j*5+2, i);
+            COMy += M[j] * Y(j*5+3, i); 
+        }
+        // Subtract contribution from the planet to be analysed:
+        COMx -= M[nPlanetNo] * Y(nPlanetNo*5+2, i);
+        COMy -= M[nPlanetNo] * Y(nPlanetNo*5+3, i);
+        
+        // Assign COM 
+        aCOMx(i) = 1./fMtot * COMx;
+        aCOMy(i) = 1./fMtot * COMy;
+
+        // Radius: COM <-> planet nPlanetNo
+        tmpRadCOM_planet    = sqrt(aCOMx(i)*aCOMx(i) + aCOMy(i)*aCOMy(i) ) \
+                            - sqrt(Y(nPlanetNo*5+2,i) * Y(nPlanetNo*5+2,i)\
+                                +  Y(nPlanetNo*5+3,i) * Y(nPlanetNo*5+3,i));
+
+        // Finding potential energy between two bodies
+        aPot(i) = fMtot * M[nPlanetNo] / tmpRadCOM_planet; 
+    }
+    
+}
+
 
 
 void SolarSystem::SolveAll(arma::mat &Y, double dt, double dt0) {
