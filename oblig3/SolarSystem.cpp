@@ -33,7 +33,7 @@ arma::mat SolarSystem::ConstructArray(int N)
     // Each planet is assigned an index k
     
     // Fill in: initial values
-
+    
     for (int k=0; k<nPlanets; k++) {
         A(k*5  ,0) = vx[k];
         A(k*5+1,0) = vy[k];
@@ -41,7 +41,6 @@ arma::mat SolarSystem::ConstructArray(int N)
         A(k*5+3,0) =  y[k];
         A(k*5+4,0) =  M[k];
     }
-    A(nPlanets, 0) =    0;  // init. time
 
     return A;
 }
@@ -118,5 +117,7 @@ void SolarSystem::SolveAll(arma::mat &Y, double dt, double dt0) {
     //solver_EC(&aSystem, &Y, nIterations, 5*nPlanets, dt);
     solver_RK4(&aSystem, &Y, nIterations, 5*nPlanets, dt0, dt);
     //solver_DPRI(&aSystem, &Y, nIterations, 5*nPlanets, dt0, dt);
+    // Relativistic case:
+    //solver_RK4(&aSystemRel, &Y, nIterations, 5*nPlanets, dt0, dt);
 }
 
