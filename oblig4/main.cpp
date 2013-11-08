@@ -12,7 +12,7 @@ template <typename T> int sgn(T val) {
 }
 
 double initcond(double x) {
-    return 0;
+    return x-1;
 }
 
 void backward_euler(int N, int tsteps, double delta_x, double alpha)
@@ -39,18 +39,18 @@ void backward_euler(int N, int tsteps, double delta_x, double alpha)
     }
     for (int i=0; i < N; i++) { 
         // fill values: above and below diag
-        gsl_vector_set( abovediag, i, b);
+        gsl_vector_set( abovediag, i, a);
         gsl_vector_set( belowdiag, i, c);
     }
     // Fill diag. values
     for (int i=0; i < N; i++) {
-        gsl_vector_set( diag, i, a);
+        gsl_vector_set( diag, i, b);
     }
 
     // Boundary conditions
     gsl_vector_set( rhs, N, 0.0);
-    gsl_vector_set( rhs, 0, 1.0);
-    gsl_vector_set( solution, 0, 1.0);
+    gsl_vector_set( rhs, 0, 0.0);
+    gsl_vector_set( solution, 0, 0.0);
     gsl_vector_set( solution, N, 0.0);
 
     printf("abovediagN-1 = %g\n", gsl_vector_get( belowdiag, 0));
@@ -61,10 +61,10 @@ void backward_euler(int N, int tsteps, double delta_x, double alpha)
         gsl_linalg_solve_tridiag(diag, abovediag, belowdiag, rhs, solution);
 
         // boundary conditions
-        gsl_vector_set(solution, 0, 1.0);
+        gsl_vector_set(solution, 0, 0.0);
         gsl_vector_set(solution, N, 0.0);
 
-        // replace old time sol with new
+        // replace old time-solution with new
         for (int i = 0; i<= N; i++) {
             gsl_vector_set( rhs, i,  gsl_vector_get( solution, i) );
         }
@@ -124,7 +124,11 @@ int main(int argc, char* argv[]) {
             // diff eq
             unew(i) = alpha*u(i-1) + (1 - 2*alpha)*u(i) + alpha*u(i+1);
         }
+        u = unew;
     }
+
+
+
 
     cout << "Time steps: "<< tsteps << " with length " << 1./tsteps << " and dx = " << step << endl;
     unew.print();
