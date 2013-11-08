@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-c -Wall -O3 -std=gnu++11
-LDFLAGS=-larmadillo
+LDFLAGS=-lgsl -larmadillo
 SOURCES=main.cpp outputFile.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 	EXECUTABLE=obl4.x
