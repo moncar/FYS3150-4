@@ -77,12 +77,76 @@
 \maketitle{}
 
 \begin{abstract}
-    This project devises a way of solving a $N$-body gravitational problem using a fourth order Runge-Kutta differential equation solver. The procedures are implemented in a way that makes them easy to reuse, and are all dimensionless. The virial theorem is applied on Venus, and found to give that the total energy $2\langle K \rangle + \langle V \rangle = 0$ as there are no non-conservative forces acting on the system. Moon is found to orbit Earth with approximately 14 cycles per year. The perihelion precession of Mercury is reproduced, but is of five orders of magnitude smaller than the physical precession. The project only uses distances to Sun to calculate the initial velocities.
 \end{abstract}
 
 \section{Introduction}
+In this project, the diffusion equation is applied to describe the transmission of electric signals through synapses. The equation is solved numerically using the explicit Forward-Euler scheme, the implicit Backward-Euler scheme and the implicit Crank-Nicolson scheme.
+
+The transmission of a signal between two neural cells consist of release of ions into the gap between the transmitter neuron (the axon) and the receiver neuron (the dendrite), called the synaptic cleft. The synaptic cleft between the axon and the dendrite is in this project modelled as a one dimensional stretch $x \in [0,d]$ over which neurotransmitters are released.
+
+The chain of events is as follows:
+\begin{enumerate}
+    \item $t<0$: the concentration $u(x,t)$ of neurotransmitters is zero for $0 \leq x \geq d$.
+    \item $t=0$: the neurotransmitters are released from the axon, and the concentration is $u(x,t=0) = N \delta(x-0)$, at $x=0$ where $N$ is the concentration of neurotransmitters per area of cell membrane.
+    \item $t>0$: the concentration at the terminals are set to normalised units, $u(x=0, t>0) = 1$ and $u(x=d, t>0) = 0$, where the last condition implies that all neurotransmitters are absorbed immediately at the dendrite.
+\end{enumerate}
+
+The diffusion equation is
+\begin{equation}
+    \frac{\partial u}{\partial t} = D \nabla^2 u
+    \label{eq:diff-general}
+\end{equation}
+where $D$ is the diffusion constant with units area per time. For one dimension, the equation reduces to
+\begin{equation}
+    \frac{\partial u}{\partial t} = D \frac{\partial^2 u}{\partial x^2}
+    \label{eq:diffeq}
+\end{equation}
+where a change to dimensionless units also can remove the presence of $D$. In this project eq.~(\ref{eq:diffeq}) is assumed to be dimensionless with $D=1$ area per time.
+
 
 \section{Methods}
+\subsection{Forward-Euler}
+The explicit Forward-Euler scheme uses the discrete approximation to the second and first derivatives and combine these to produce an expression for the next time step.
+
+The spatial, second derivative can be rewritten
+\begin{align}
+    \frac{\partial^2 u}{\partial x^2} &\approx \frac{u^j_{i+1} - 2 u^j_{i} + u^j_{i-1}}{h_x^2}
+    \label{eq:d2u}
+\end{align}
+where the notation, $u^j_{i+1}$ denotes $u(x_i + \Delta x, \, t_j)$, and $h_x \equiv \Delta x^2$. The error goes as $\mathcal{O}(\Delta x^2)$.
+
+The temporal, first derivate can be rewritten 
+\begin{equation}
+    \frac{\partial u}{\partial t} \approx \frac{u^{j+1}_i - u^{j}_i}{h_t}
+    \label{eq:du}
+\end{equation}
+where the notation now indicates differences in time, $u^{j+1}_i \equiv u\left( x_i, \, t_j + \Delta t \right)$ and $h_t \equiv \Delta t$. The truncation error goes as $\mathcal{O}(\Delta t)$.
+
+Combining eqs.~(\ref{eq:d2u}, \ref{eq:du}) and solving for $u^{j+1}_i$;
+\begin{align*}
+    \frac{u^{j+1}_i - u^{j}_i}{h_t} &= \frac{u^j_{i+1} - 2 u^j_{i} + u^j_{i-1}}{h_x^2} \\
+    u^{j+1}_i &= u^j_i + \frac{h_t}{h_x^2} \left\{  u^j_{i+1} - 2 u^j_{i} + u^j_{i-1} \right\} 
+\end{align*}
+where the rhs.~is given from the initial values along the border and the only unknown is $u^{j+1}_i$. This equation can be solved for all $ 1 \leq i \leq N-1$ as long as there are boundary conditions giving $u_0^j$ and $u_N^j$.
+
+
+\subsection{Implicit}<++>
+This equation can be written on vector form, introducing $\alpha = h_t / h_x^2$ and modifying the above expression,
+\begin{align*}
+    u^{j+1}_i   &= \alpha u^j_{i+1} + \left( 1 - 2\alpha \right) u^j_{i} + \alpha u^j_{i+1} \\
+    \mathbf{u}^{j+1} &= A \mathbf{u}^j
+\end{align*}
+where $\mathbf{u}^j = [u^j_0, u^j_1, \dots, u^j_N]$ and $A$ is a tridiagonal matrix,
+\[ A = 
+    \begin{bmatrix}
+        1-2\alpha   & \alpha & 0        & \dots     & 0 \\
+        \alpha      & 1-2\alpha& \alpha & 0         & \vdots \\
+        0           & \ddots & \ddots   & \ddots    & 0  \\
+        \vdots      & 0      & \alpha   & 1-2\alpha & \alpha \\
+        0           & \dots  & 0        & \alpha    & 1-2\alpha
+    \end{bmatrix}
+\]
+
 \section{Results}
 \section{Discussion and conclusion}
 
