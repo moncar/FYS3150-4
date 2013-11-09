@@ -43,7 +43,7 @@ void backward_euler(int N, int tsteps, double delta_x, double alpha)
         gsl_vector_set( belowdiag, i, c);
     }
     // Fill diag. values
-    for (int i=0; i < N; i++) {
+    for (int i=0; i <= N; i++) {
         gsl_vector_set( diag, i, b);
     }
 
@@ -68,9 +68,9 @@ void backward_euler(int N, int tsteps, double delta_x, double alpha)
         for (int i = 0; i<= N; i++) {
             gsl_vector_set( rhs, i,  gsl_vector_get( solution, i) );
         }
-        // print solution?
-
-        }
+    }
+    
+    // print solution?
     for (int i=0; i<=N; i++) {
         printf("u_%d = %g\n", i,  gsl_vector_get( solution, i));
     }
@@ -85,6 +85,117 @@ void backward_euler(int N, int tsteps, double delta_x, double alpha)
 
 }
 
+void crank_nicolson(int N, int tsteps, double delta_x, double alpha) {
+    // // //
+    // Implicit scheme: Crank-Nicolson
+    // // //
+    
+
+    // Initialise
+    double a,b,c;   // a, c: off-diagonal
+                    //  b  : diagonal
+    
+    gsl_vector* diag        = gsl_vector_calloc(N+1);
+    gsl_vector* abovediag   = gsl_vector_calloc(N);
+    gsl_vector* belowdiag   = gsl_vector_calloc(N);
+    gsl_vector* rhs         = gsl_vector_calloc(N+1);
+    gsl_vector* r           = gsl_vector_calloc(N+1);
+    gsl_vector* solution    = gsl_vector_calloc(N+1);
+
+    // Diagonal matrix: elements
+    a = c = -alpha;
+    b = 1 + 2*alpha;
+
+    for (int i=0; i < N; i++) { 
+        // fill values: above and below diag
+        gsl_vector_set( abovediag, i, a);
+        gsl_vector_set( belowdiag, i, c);
+    }
+    for (int i=0; i <= N; i++) {
+        // Fill diag. values
+        gsl_vector_set( diag, i, b);
+    }
+
+
+    //// // // EXPLICIT PART:
+    //// // // Calculate RHS
+    //gsl_vector* unew    = gsl_vector_calloc(N+1); // Next timestep
+
+    //// Boundary conditions:
+    ////      u(0,t) = 1 , t>0
+    ////      u(d,t) = 0 , t>0
+
+    //gsl_vector_set( solution, 0, 0.0);
+    //gsl_vector_set( solution, N, 0.0);
+
+    ////  Initialisation
+    //for (int i=1; i < N; i++) {
+    //    // init condition
+    //    gsl_vector_set( solution, i, initcond( i*delta_x ) );
+    //    // init new vector
+    //    gsl_vector_set( unew, i, 0.0);
+    //}
+
+    //// time integration
+    //for (int t = 1; t <= tsteps; t++) {
+    //    for (int i = 1; i < N; i++) {
+    //        // diff eq
+    //        gsl_vector_set( unew, i, \
+    //                  alpha      * gsl_vector_get( solution, i-1) \
+    //                + (1-2*alpha)* gsl_vector_get( solution, i ) \
+    //                + alpha      * gsl_vector_get( solution, i+1) \
+    //                );
+    //    }
+    //    solution = unew;
+    //}
+
+    //// // //
+
+    // Boundary conditions
+    gsl_vector_set( rhs, N, 0.0);
+    gsl_vector_set( rhs, 0, 1.0);
+    gsl_vector_set( solution, 0, 0.0);
+    gsl_vector_set( solution, N, 0.0);
+
+    printf("abovediagN-1 = %g\n", gsl_vector_get( belowdiag, 0));
+
+
+    // Time iteration
+    for (int t = 1; t<= tsteps; t++) {
+        for (int i = 1; i< N; i++) {
+            gsl_vector_set( rhs, i, \
+                  alpha         *gsl_vector_get( solution, i-1) \
+                + (2 - 2*alpha) *gsl_vector_get( solution, i) \
+                + alpha         *gsl_vector_get( solution, i+1) \
+                );
+            }
+
+        gsl_vector_set( rhs, 0, 0.0);
+        gsl_vector_set( rhs, N, 0.0);
+
+        // Solve tridiag matrix
+        gsl_linalg_solve_tridiag(diag, abovediag, belowdiag, rhs, solution);
+
+        gsl_vector_set( solution, 0, 0.0);
+        gsl_vector_set( solution, N, 0.0);
+        
+        }
+
+    // print solution?
+    printf("CRANK-NICOLSON SCHEME\n");
+    for (int i=0; i<=N; i++) {
+        printf("u_%d = %g\n", i,  gsl_vector_get( solution, i));
+    }
+
+
+    // HOUSEKEEPING
+    gsl_vector_free(diag);
+    gsl_vector_free(abovediag);
+    gsl_vector_free(belowdiag);
+    gsl_vector_free(rhs);
+    gsl_vector_free(r);
+    gsl_vector_free(solution);
+}
 
 int main(int argc, char* argv[]) {
 
@@ -133,8 +244,8 @@ int main(int argc, char* argv[]) {
     cout << "Time steps: "<< tsteps << " with length " << 1./tsteps << " and dx = " << step << endl;
     unew.print();
     
-    backward_euler(N, tsteps, step, alpha);
-
+    //backward_euler(N, tsteps, step, alpha);
+    crank_nicolson(N, tsteps, step, alpha);
 
     return 0;
 }
