@@ -77,6 +77,7 @@
 \maketitle{}
 
 \begin{abstract}
+This project applies the explicit Forward-Euler method, the implicit Backward-Euler method and the implicit Crank-Nicolson method on the diffusion equation, a PDE. The equation gives the evolution with time of the concentration of neurotransmitters in the synaptic cleft between two terminals, the transmitter--the axon; and the receiver--the dendrite. This project shows that the implicit methods are more stable than the explicit Forward-Euler method, and the Crank-Nicolson method is superior in terms of flexibility of time- and length-step choices. The analytic solution of the diffusion equation does not prove to be the solution for all $t$, but only the steady-state solution.
 \end{abstract}
 
 \section{Introduction}
@@ -131,7 +132,7 @@ where the rhs.~is given from the initial values along the border and the only un
 
 
 \subsection{Implicit Backward-Euler}
-Instead of choosing a comparison with the following timestep for the temporal derivative, the comparison can be done with the prior timestep, maintaining an error that goes as $\mathcal{O}(\Delta t)$,
+Instead of choosing a comparison with the following time-step for the temporal derivative, the comparison can be done with the prior time-step, maintaining an error that goes as $\mathcal{O}(\Delta t)$,
 \begin{equation}
     \frac{\partial u}{\partial t} \approx \frac{u^{j}_i - u^{j-1}_i}{h_t}
     \label{eq:du_impl}
@@ -144,17 +145,17 @@ This expression can be solved for $u^{j-1}_i$,
 \]
 which can be written on vector form, using $\alpha = h_t / h_x^2$ and modifying the above expression,
 \begin{align*}
-    u^{j-1}_i   &= -\alpha u^j_{i-1} + \left( 2\alpha -1 \right) u^j_{i} - \alpha u^j_{i+1} \\
+    u^{j-1}_i   &= -\alpha u^j_{i-1} + \left( 2\alpha +1 \right) u^j_{i} - \alpha u^j_{i+1} \\
     \mathbf{u}^{j-1} &= A \mathbf{u}^j
 \end{align*}
 where $\mathbf{u}^j = [u^j_1, \dots, u^j_{N-1}]$, and $A$ is a tridiagonal matrix,
 \[ A = 
     \begin{bmatrix}
-        2\alpha-1   & -\alpha& 0        & \dots     & 0 \\
-        -\alpha     & 2\alpha-1&-\alpha & 0         & \vdots \\
+        2\alpha+1   & -\alpha& 0        & \dots     & 0 \\
+        -\alpha     & 2\alpha+1&-\alpha & 0         & \vdots \\
         0           & \ddots & \ddots   & \ddots    & 0  \\
-        \vdots      & 0      &-\alpha   & 2\alpha-1 &-\alpha \\
-        0           & \dots  & 0        &-\alpha    & 2\alpha-1
+        \vdots      & 0      &-\alpha   & 2\alpha+1 &-\alpha \\
+        0           & \dots  & 0        &-\alpha    & 2\alpha+1
     \end{bmatrix}
 \]
 if, and only if, the solution is zero at the boundaries, that is, $u^j_0 = u^j_N = 0$.
@@ -162,11 +163,220 @@ if, and only if, the solution is zero at the boundaries, that is, $u^j_0 = u^j_N
 The problem that remains is to find $\mathbf{u}^j = A^{-1} \mathbf{u}^{j-1}$. This can be done using either Gaussian elimination, or the tridiagonal scheme devised in \textit{Project 1: Numerical differentiation}. 
 
 \subsection{Implicit Crank-Nicolson}
-The implicit Crank-Nicolson scheme 
+The implicit Crank-Nicolson scheme is produced by combining the Taylor-expansions of the following functions:
+\begin{itemize}
+    \item $u(x + \Delta x, t + \Delta t)    = u^{j+1}_{i+1}$
+    \item $u(x - \Delta x, t + \Delta t)    = u^{j+1}_{i-1}$
+    \item $u(x + \Delta x, t)               = u^j_{i+1}$
+    \item $u(x - \Delta x, t)               = u^j_{i-1}$
+    \item $u(x           , t + \Delta t)    = u^{j+1}_i$
+    \item $u(x           , t)               = u^j_i$
+\end{itemize}
+around $(x, t + \Delta t /2)$. When these approximations are brought together, they form a scheme where $\theta = {}^1\!/_2$ and the largest errors go as $\mathcal{O}(\Delta t^2)$ and $\mathcal{O}\left( \Delta x^3 \right)$,
+\begin{equation}
+       \frac{1}{h_t} \left( u^j_i - u^{j-1}_i \right)
+    =  \frac{\theta}{h_x^2} \left( u^j_{i-1} - 2 u^j_i + u^j_{i+1} \right) 
+    +  \frac{1-\theta}{h_x^2} \left( 
+        u^{j-1}_{i-1} - 2u^{j-1}_i + u^{j-1}_{i+1}
+        \right)
+    \label{eq:CN}
+\end{equation}
+which can be split into two parts, one for the prior time step, and one for the current time step (which is the unknown),
+\begin{align*}
+        u^j_i - \frac{h_t}{h_x^2} \theta 
+        \left\{ u^j_{i-1} - 2 u^j_i + u^j_{i+1}  \right\} 
+    &=  u^{j-1} + \frac{h_t}{h_x^2} \theta \left\{ u^{j-1}_{i-1} - 2u^{j-1}_i + u^{j-1}_{i+1}  \right\} \\
+        u^j_i - \alpha \theta 
+        \left\{ u^j_{i-1} - 2 u^j_i + u^j_{i+1}  \right\} 
+    &=  u^{j-1} + \alpha \theta \left\{ u^{j-1}_{i-1} - 2u^{j-1}_i + u^{j-1}_{i+1}  \right\} \\
+    -\alpha \theta u^j_{i-1} + \left( 1 + 2 \alpha \theta \right)u^j_i - \alpha \theta u^j_{i+1}
+    &= \alpha \theta u^{j-1}_{i-1} + \left( 1 - 2 \alpha \theta \right)u^{j-1}_i + \alpha \theta u^{j-1}_{i+1}
+\end{align*}
+where it was used that $\alpha \equiv h_t/h_x^2$.
+
+Multiplying the above equation by 2 and using $\theta = {}^1\!/_2$, the equation can be rewritten onto vector form,
+\begin{align*}
+    -\alpha u^j_{i-1} + \left( 2 + 2 \alpha \right)u^j_i - \alpha u^j_{i+1}
+    &= \alpha u^{j-1}_{i-1} + \left( 2 - 2 \alpha \theta \right)u^{j-1}_i + \alpha u^{j-1}_{i+1} \\
+    \left( 2I + \alpha B  \right) \mathbf{u}^j &= 
+    \left( 2I - \alpha B  \right) \mathbf{u}^{j-1} 
+\end{align*}
+where $\mathbf{u}^j = [u^j_1, u^j_2,\dots, u^j_{N-1}]$ and likewise for $\mathbf{u}^{j-1}$. As for the implicit method, this method requires that $\mathbf{u}^j_0 = \mathbf{u}^j_N = \mathbf{u}^{j-1}_0 = \mathbf{u}^{j-1}_N = 0$. The matrix $B$ can then be written as
+\[ B = 
+    \begin{bmatrix}
+        2           & -1     & 0        & \dots     & 0 \\
+        -1          & 2      & 1        & 0         & \vdots \\
+        0           & \ddots & \ddots   & \ddots    & 0  \\
+        \vdots      & 0      &-1        & 2         &-1  \\
+        0           & \dots  & 0        &-1         & 2
+    \end{bmatrix}.
+\]
+
+The scheme is implicit as the unknown $\mathbf{u}^j$ must be found through matrix inversion,
+\begin{align*}
+    \mathbf{u}_j &= \left( 2I + \alpha B \right)^{-1} \left( 2I -\alpha B \right) \mathbf{u}^{j-1} \\
+    &= \left( 2I + \alpha B \right)^{-1} \mathbf{r}
+\end{align*}
+where $\mathbf{r} = \left( 2I -\alpha B \right) \mathbf{u}^{j-1}$, which can be found explicitly before solving the last line using the tridiagonal solver. Unlike the forward- and backward-Euler schemes, the method is stable for all choices of $\alpha$. 
+
+\subsection{Closed-form solution of the diffusion equation}
+The closed form solution of the diffusion equation can be derived as the boundary conditions are known. The main feature is to make the assumption that the function $u(x,t)$ can be written as
+\begin{align*}
+    u(x,t) &= F(x)G(t) \\
+    \frac{\partial u}{\partial t} &= \frac{\partial^2 u}{\partial x^2} \\
+    F(x) \frac{\diff G}{\diff t} &= G(t) \frac{\diff^2 F}{\diff x^2} \\
+    \frac{1}{G(t)} \frac{\diff G}{\diff t} &= \frac{1}{F(t)} \frac{\diff^2 F}{\diff x^2} = -\lambda
+\end{align*}
+where the last equality implies that both equations must be equal to a constant as both are independent of each other. The spatial and temporal part can be solved analytically.
+
+\subsubsection{Spatial function}
+The spatial function, $F(x)$, can be solved for, 
+\[ \frac{1}{F(x)} \frac{\!\diff^2 F}{\diff x^2} = -\lambda \quad\Rightarrow\quad
+\frac{\!\diff^2 F}{\!\diff x^2} + F(x) \lambda = 0 \]
+using a characteristic equation,
+\[ r^2 + r\lambda = 0 \quad \Rightarrow \quad r = \pm \sqrt{\lambda} \]
+which, depending on the sign of the eigenvalues $\lambda$, gives the solutions
+\begin{enumerate}
+    \item $\lambda > 0$: $F(x) = C_1 e^{+ \sqrt{\lambda} x} + C_2 e^{- \sqrt{\lambda} x} \approx C_1 e^{+ \sqrt{\lambda} x}$
+    \item $\lambda = 0$: The differential equation can be solved directly,
+        \begin{align*}
+            \frac{\!\diff^2 F}{\!\diff x^2} &= 0 \\
+            F(x) &= \iint 0 \diff x^2 = C_1 x + C_2
+        \end{align*}
+    \item $\lambda < 0$: $F(x) = C_1 e^{+ i \sqrt{\lambda} x} + C_2 e^{- i \sqrt{\lambda} x} \approx C_1 e^{+ i \sqrt{\lambda} x}$.
+\end{enumerate}
+
+The boundary values determine the appropriate eigenvalue $\lambda$. The conditions are
+\begin{equation}
+    u(x,t) =
+    \begin{cases}
+        u_0 &\text{ for } x=0,\, t\geq 0 \\
+        0   &\text{ for } x=d,\, t\geq 0
+    \end{cases}.
+    \label{eq:boundaries}
+\end{equation}
+
+There are four possibilities for the boundary $t\geq 0$ and $x=0$:
+\begin{align*}
+    u(0,t\geq 0) &= F(0)G(t) = F(0) \frac{u_0}{F(0)}  = u_0 \\
+    u(0,t\geq 0) &= F(0)G(t) = \frac{u_0}{G(t)} G(t) = u_0 \\
+    u(0,t\geq 0) &= F(0)G(t) = u_0 \cdot 1 = u_0 \\
+    u(0,t\geq 0) &= F(0)G(t) = 1 \cdot u_0 = u_0
+\end{align*}
+where the latter two are special cases of the first two expressions. The second is in violation with the assumption $u(x,t) = F(x)G(t)$, as it would mean that $F = F(x=0,t) \neq F(x)$. However, it is a possible solution if $G(t) =$ const. In that case, it is possible to choose any combination of $G(t)$ and $F(x)$, and the penultimate case is chosen, giving $F(0) = u_0$ and $G(t) = 1$.
+
+For the other boundary, $x=d$;
+\begin{align*}
+    u(d,t\geq 0) &= F(d)G(t) = F(d) \cdot 0 = 0 \\
+    u(d,t\geq 0) &= F(d)G(t) = 0\cdot    G(t) = 0
+\end{align*}
+where the first case is the trivial case which also must apply for all other $x$ and all $t\geq0$. The last case is thus physically viable.
+
+With the boundary conditions $F(0) = u_0$ and $F(d) = 0$, a corresponding eigenvalue can be found, 
+\begin{enumerate}
+\item $\lambda > 0$:
+    \begin{align*}
+        F(0) &= u_0 &&\Rightarrow C_1 e^{\sqrt{\lambda} 0} = u_0 &&&\Rightarrow C_1 = u_0 \\
+    F(d) &= 0 &&\Rightarrow C_1 e^{\sqrt{\lambda} d} = 0 &&&\Rightarrow C_1 = 0
+    \end{align*}
+    Thus is $\lambda > 0$ not a possibility.
+\item $\lambda = 0$:
+    \begin{align*}
+        F(0) &= u_0 &&\Rightarrow C_1 \cdot 0 + C_2 = u_0   &&&\Rightarrow C_2 = u_0 \\
+        F(d) &= 0   &&\Rightarrow C_1 \cdot d + C_2 = 0     &&&\Rightarrow C_1 = -u_0/d
+    \end{align*}
+    Making $F(x) = -(u_0/d)x + u_0$ a plausible choice.
+\item $\lambda < 0$: results in the same problems as for $\lambda > 0$ and thus is a negative $\lambda$ not a possibility.
+\end{enumerate}
+
+The spatial function is thus $F(x) = -(u_0/d)x + u_0$, or, defining $u_0 = 1$, makes $F(x) = 1 - x$.
+
+\subsubsection{Temporal function}
+The temporal function, $G(t)$, can be found
+\[ \frac{1}{G(t)} \frac{\diff G}{\diff t} = -\lambda \quad\Rightarrow\quad
+G(t) = G_0 e^{-\lambda t} \]
+however, in the spatial part, the boundary conditions that were imposed required that $G(t) = 1$, which also corresponds to the correct $\lambda = 0$, giving a steady-state solution.
+
+\subsubsection{Combined expression and possible rewrite}
+The steady-state solution is, for all $t\geq 0$ and $x\in[0,d]$,
+\begin{equation}
+    u_s(x) = F(x)G(t) = 1 - x.
+    \label{eq:steadystate}
+\end{equation}
+
+However, the function $u(x,t)$ can be rewritten by defining another function, $v(x,t)$ with different boundary conditions,
+\begin{equation}
+    v(x,t) = u(x,t) + u_s(x)
+    \label{eq:v}
+\end{equation}
+which has the boundaries $v(0) = v(d) = 0$. The boundaries only allow for the trivial solution $v(x,t) = 0$. 
+
+Numerically, the solution $u(x,t)$ can be found by using the PDE-methods on $v(x,t)$, and subtract the steady-state solution,
+\[ u(x,t) = v(x,t)- u_s(x). \]
 
 \section{Results}
-\section{Discussion and conclusion}
+The code was run with $N=10+1$ steps, for $x\in[0,d] \equiv \in [0,1]$ and for the forward- and backward-Euler methods, the time step was determined from $\alpha$, 
+\[ h_t = \alpha h_x^2. \]
 
+\subsection{Forward-Euler}
+Fig.~(\ref{fig:1}) shows the Forward-Euler scheme results, produced using the numerical approach for $v(x,t)$ and then subtracting the closed form solution, producing $u(x,t)$.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{fig/fig1-expl-v.pdf}
+    \caption{Plot showing solution of diffusion equation solved using a Forward-Euler scheme for $N=10+1$ points between $[0,1]$, with increasing time $t$. Note that for larger $t$, the function $u(x,t)$ becomes almost perfectly linear.}
+    \label{fig:1}
+\end{figure}
+
+Errors are plotted linearly in fig.~(\ref{fig:1e}). The errors approach zero for higher~$t$.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{fig/fig1-expl-error.pdf}
+\caption{Errors plotted for the Forward-Euler scheme, using $\varepsilon~=~1~-~|~v(x,t)/u_s(x)~| $. For large $t$, the error goes to zero. }
+    \label{fig:1e}
+\end{figure}
+
+\subsection{Backward-Euler}
+Fig.~(\ref{fig:2}) shows the implicit Backward-Euler scheme, plotted with the same number of points and for the same amount of time as the Forward-Euler scheme. The error in the initial step is less than for the Forward-Euler scheme, compare errors from fig.~(\ref{fig:2e}) with errors in fig.~(\ref{fig:1e}).
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{fig/fig2-im-v.pdf}
+    \caption{Plot showing solution of diffusion equation solved using a Backward-Euler scheme for $N=10+1$ points between $[0,1]$, with increasing time $t$. Note that the lowest time solution behaves better than in the result from the Forward-Euler scheme.}
+    \label{fig:2}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{fig/fig2-impl-error.pdf}
+    \caption{Errors plotted for the Backward-Euler scheme. Note that the error for the lowest time-solution is smaller than for the corresponding time in the Forward-Euler scheme.}
+    \label{fig:2e}
+\end{figure}
+
+\subsection{Implicit Crank-Nicolson scheme}
+The results for the implicit Crank-Nicolson scheme are given in fig.~(\ref{fig:3}), with errors plotted in (\ref{fig:3e}). 
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{fig/fig3-cn-v.pdf}
+    \caption{Plot showing solution of diffusion equation solved using the implicit Crank-Nicolson scheme with $\theta =1/2$ for $N=10+1$ points between $[0,1]$, with increasing time $t$. Note that the lowest time solution behaves as the lowest time solution in the Backward-Euler scheme.}
+    \label{fig:3}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{fig/fig3-cn-error.pdf}
+    \caption{Errors plotted for the implicit Crank-Nicolson scheme. Note that the errors are plotted against the steady-state solution, which does not evolve with time, but the diffusion equation would.}
+    \label{fig:3e}
+\end{figure}
+
+\section{Discussion and conclusion}
+The results show that the implicit schemes behave better and more stable than the explicit Forward-Euler scheme. However, it should be noted that the Crank-Nicolson scheme has an error that is a magnitude lower than the implicit Backward-Euler scheme, and is also stable for all choices of $\alpha$. 
+
+The results are plotted together with error plots. These show the error given against the steady-state solution $u_s(x)$, which is not the correct solution with full time dependence. Physically intuitively, the results that are produced using the implicit schemes show the time evolution of the concentration, which is highest near the transmitter for small $t$, but reaches a steady-state given as a linear function between the two terminals.
+
+The project does thus fail to produce the analytic solution for the diffusion equation $u(x,t)$, but the numerical results produce results that appear physically plausible.
 
 \bibliography{referanser}
 \bibliographystyle{plain}
