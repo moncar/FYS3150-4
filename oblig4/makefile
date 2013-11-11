@@ -1,7 +1,7 @@
 CC=g++
-CFLAGS=-c -Wall -O3 -std=gnu++11
+CFLAGS=-c -Wall -O1 -std=gnu++11
 LDFLAGS=-lgsl -larmadillo
-SOURCES=main.cpp outputFile.cpp
+SOURCES=main.cpp outputFile.cpp PDESolvers.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 	EXECUTABLE=obl4.x
 
