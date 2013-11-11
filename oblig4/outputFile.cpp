@@ -28,3 +28,33 @@ void outputFile(int N, int cols,double *fX,double *fCalcX, char *filename[])
     ofile.close();
 
 }
+
+void outputFile2(int N,int rows,double *fX,double *fCalcX, char *filename[])
+{
+    cout << "Ugly file-printer module: printing "<<rows<< " lines to: " \
+         << filename[0] << endl;
+
+    ofile.open(filename[0]);
+    ofile << setiosflags(ios::showpoint | ios::uppercase);
+
+    // Print x-axis: first row
+    for (int i=0; i<N; i++) {
+        ofile << setw(18) << setprecision(8) << fX[i];
+    }
+    ofile << endl;
+
+    // print data: second and so-forth rows
+    for (int r=0; r<rows; r++) {
+        for (int i=0; i < N; i++) {
+            ofile << setw(18) << setprecision(8) << fCalcX[i + r*N];
+        }
+        ofile << endl;
+    }
+    
+    ofile.close();
+}
+
+
+
+
+
