@@ -4,6 +4,11 @@
 
 #include "lib.h"
 
+#define EPS 3.0e-14
+#define PIM4 0.7511255444649425
+#define MAXIT 10
+
+
 using namespace std;
 
 
@@ -31,7 +36,6 @@ double wavefunc_red(double x1, double y1, double z1, \
     double alpha = 1.0;
 
     double r1r2=sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-
 
     if (r1r2 > 1e-6) {
         return 1.0 / r1r2 ;
@@ -99,18 +103,18 @@ int main(int argc, char* argv[]) {
     gauleg(lima, limb, x,w, N);
 
     // integrate
-    #pragma omp parallel for reduction(+:intsum)
-    for (int i=0; i < N; i++) {
-    for (int j=0; j < N; j++) {
-    for (int k=0; k < N; k++) {
-    for (int l=0; l < N; l++) {
-    for (int m=0; m < N; m++) {
-    for (int n=0; n < N; n++) {
-        intsum += w[i]*w[j]*w[k]*w[l]*w[m]*w[n] \
-                * wavefunc(x[i], x[j], x[k], x[l], x[m], x[n]);
-    }}}}}}
+    //#pragma omp parallel for reduction(+:intsum)
+    //for (int i=0; i < N; i++) {
+    //for (int j=0; j < N; j++) {
+    //for (int k=0; k < N; k++) {
+    //for (int l=0; l < N; l++) {
+    //for (int m=0; m < N; m++) {
+    //for (int n=0; n < N; n++) {
+    //    intsum += w[i]*w[j]*w[k]*w[l]*w[m]*w[n] \
+    //            * wavefunc(x[i], x[j], x[k], x[l], x[m], x[n]);
+    //}}}}}}
 
-    printf("Integral sum: %g , with N=%d \n", intsum, N);
+    //printf("Integral sum: %g , with N=%d \n", intsum, N);
 
 
     // Gauss-Hermite:   integrate wave-function
@@ -121,22 +125,23 @@ int main(int argc, char* argv[]) {
     double intsum2= 0.0;        // integration sum: G-H
 
     // init: mesh points and weights
-    GaussHermite(x, w, N);
+    GaussHermite(xx, ww, N);
+
+    cout << w[0] << " " << w[1] << endl;
 
     // integrate
-
-    #pragma omp parallel for reduction(+:intsum)
+    #pragma omp parallel for reduction(+:intsum2)
     for (int i=0; i < N; i++) {
     for (int j=0; j < N; j++) {
     for (int k=0; k < N; k++) {
     for (int l=0; l < N; l++) {
     for (int m=0; m < N; m++) {
     for (int n=0; n < N; n++) {
-        intsum2 += w[i]*w[j]*w[k]*w[l]*w[m]*w[n] \
-                * wavefunc_red(x[i], x[j], x[k], x[l], x[m], x[n]);
+        intsum2 += ww[i]*ww[j]*ww[k]*ww[l]*ww[m]*ww[n] \
+                * wavefunc_red(xx[i], xx[j], xx[k], xx[l], xx[m], xx[n]);
     }}}}}}
 
-    printf("Integral sum: %g , with N=%d \n", intsum2, N);
+    printf("Integral sum: %.12g , with N=%d \n", intsum2, N);
 
     //
 
