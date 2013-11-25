@@ -91,7 +91,7 @@ The Gauss-Legendre quadrature, o
 
 \begin{table}
     \centering
-    \caption{Gauss-Legendre quadrature integration results. Note that $N=128$ required $128^6 \approx 4400$ billion integration points.}
+    \caption{Gauss-Legendre quadrature integration results. Note that $N=128$ required $128^6 \approx 4400$ billion integration points and required more than three hours of computations on the 64-core computing node \texttt{nekkar.uio.no}, fully parallelised using OpenMP.}
     \begin{tabular}{l l}
         \hline
         $N$ &   Results \\
@@ -106,6 +106,22 @@ The Gauss-Legendre quadrature, o
     \label{tab:<+label+>}
 \end{table}<++>
 
+\begin{table}
+    \centering
+    \caption{Gauss-Hermite quadrature integration results.}
+    \begin{tabular}{l l}
+        \hline
+        $N$ &   Results \\
+        \hline
+        8   &   21.5379 \\
+        16  &   23.0806 \\
+        32  &   23.8942 \\
+        64  &   24.3128 \\
+        128 &    \\
+        \hline
+    \end{tabular}
+    \label{tab:<+label+>}
+\end{table}<++>
 
 \section{Discussion and conclusion}
 
