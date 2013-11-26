@@ -165,8 +165,7 @@ int main(int argc, char* argv[]) {
     // init random seed 
     srand(time(0));
     mt19937 eng(time(NULL));
-    //default_random_engine generator;
-    uniform_real_distribution<double> uniform_real(0.0,1.0);
+    uniform_real_distribution<double> uniform_real(-1.0,1.0);
     
 
     double** xxx = new double*[6];
@@ -176,15 +175,28 @@ int main(int argc, char* argv[]) {
     }
 
     //#pragma omp parallel for
-    for (int j=0; j < N; j++) {
-        for (int i=0; i < 6; i++) {
-            xxx[i][j] = uniform_real(eng); 
-            cout << xxx[i][j] << " ";
-            if ((i+1)%6 == 0) {
-                cout << endl;
-            }
+    for (int j=0; j < 6; j++) {
+        for (int i=0; i < N; i++) {
+            xxx[j][i] = tan(M_PI/2.0 * uniform_real(eng)); 
+            //cout << xxx[j][i] << " \t";
+            //if ((i+1)%N == 0) {
+            //    cout << endl;
+            //}
         }
     }
+
+    double intsum3 = 0.0;
+
+    // Calculate f(x) at the given points
+    #pragma omp parallel for reduction(+:intsum3)
+    for (int i=0; i < N; i++) {
+        intsum3 += wavefunc_red(xxx[0][i], xxx[1][i], xxx[2][i], xxx[3][i], xxx[4][i], xxx[5][i]);
+    }
+
+    double integral = intsum3/N;
+
+    cout << integral << endl;
+    
 
 
     // Housekeeping
