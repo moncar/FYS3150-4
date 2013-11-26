@@ -164,8 +164,9 @@ int main(int argc, char* argv[]) {
    
     // init random seed 
     srand(time(0));
-    default_random_engine generator;
-    uniform_real_distribution<double> distribution(0,1);
+    mt19937 eng(time(NULL));
+    //default_random_engine generator;
+    uniform_real_distribution<double> uniform_real(0.0,1.0);
     
 
     double** xxx = new double*[6];
@@ -177,7 +178,7 @@ int main(int argc, char* argv[]) {
     //#pragma omp parallel for
     for (int j=0; j < N; j++) {
         for (int i=0; i < 6; i++) {
-            xxx[i][j] = distribution(generator);
+            xxx[i][j] = uniform_real(eng); 
             cout << xxx[i][j] << " ";
             if ((i+1)%6 == 0) {
                 cout << endl;
