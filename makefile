@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall -fopenmp -std=gnu++11
+CFLAGS=-c -o3 -Wall -fopenmp -std=c++0x
 LDFLAGS=-lgomp
 SOURCES=main.cpp lib.cpp 
 OBJECTS=$(SOURCES:.cpp=.o)
