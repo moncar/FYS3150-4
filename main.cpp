@@ -1,6 +1,8 @@
 #include <iostream>
 #include <math.h>
 #include <omp.h>
+#include <time.h>
+#include <random>
 
 #include "lib.h"
 
@@ -87,8 +89,19 @@ void GaussHermite(double *x,double *w, int n)
 
 int main(int argc, char* argv[]) {
 
+    int N;
 
-    int N = 2*2*2*2*2*2*2;
+    if (argc < 2) {
+        N = 2*2;
+        cout << "Launching integrator. N=" << (int)N << endl;
+    }
+    else {
+        N = atoi(argv[1]);
+        cout << "Launching integrator. N=" << (int)N << endl;
+    }
+        
+
+    //int N = 2*2*2*2*2*2*2;
     double lima = -5.0;
     double limb = +5.0;
 
@@ -130,38 +143,55 @@ int main(int argc, char* argv[]) {
     cout << w[0] << " " << w[1] << endl;
 
     // integrate
-    #pragma omp parallel for reduction(+:intsum2)
-    for (int i=0; i < N; i++) {
-    for (int j=0; j < N; j++) {
-    for (int k=0; k < N; k++) {
-    for (int l=0; l < N; l++) {
-    for (int m=0; m < N; m++) {
-    for (int n=0; n < N; n++) {
-        intsum2 += ww[i]*ww[j]*ww[k]*ww[l]*ww[m]*ww[n] \
-                * wavefunc_red(xx[i], xx[j], xx[k], xx[l], xx[m], xx[n]);
-    }}}}}}
+    //#pragma omp parallel for reduction(+:intsum2)
+    //for (int i=0; i < N; i++) {
+    //for (int j=0; j < N; j++) {
+    //for (int k=0; k < N; k++) {
+    //for (int l=0; l < N; l++) {
+    //for (int m=0; m < N; m++) {
+    //for (int n=0; n < N; n++) {
+    //    intsum2 += ww[i]*ww[j]*ww[k]*ww[l]*ww[m]*ww[n] \
+    //            * wavefunc_red(xx[i], xx[j], xx[k], xx[l], xx[m], xx[n]);
+    //}}}}}}
 
     printf("Integral sum: %.12g , with N=%d \n", intsum2, N);
 
+    // Brute-force Monte Carlo
+
+    // Find random variables in range: [0,1] to [-infty, +infty]
     //
-
-
-
-////    int treid; 
-////    double sumtot = 0;
-////    
-////    #pragma omp parallel private(treid)
-////    {
-////        treid = omp_get_thread_num();
-////        std::cout << "Hello World! " << treid << "\n";
-////        //sumtot += wavefunc(treid, treid+1, treid, treid+2, treid, treid+3);
-////        sumtot += treid;
-////
-////
-////    }
-////
-////
+    // 6 dimensions:
+   
+    // init random seed 
+    srand(time(0));
     
+
+    double** xxx = new double*[6];
+    #pragma omp parallel for
+    for (int i=0; i < 6; i++) {
+        xxx[i] = new double[N];
+    }
+
+    //#pragma omp parallel for
+    for (int j=0; j < N; j++) {
+        for (int i=0; i < 6; i++) {
+            xxx[i][j] = rand()%10;
+            cout << xxx[i][j] << " ";
+            if ((i+1)%6 == 0) {
+                cout << endl;
+            }
+        }
+    }
+
+
+    // Housekeeping
+    delete [] x;
+    delete [] xx;  
+    delete [] xxx;
+    delete [] w;
+    delete [] ww;
+
+
     return 0;
 
 }
