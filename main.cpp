@@ -184,13 +184,8 @@ int main3(int argc, char* argv[]) {
 
     // Brute-force Monte Carlo
 
-    // Find random variables in range: [0,1] to [-infty, +infty]
-    //
-    // 6 dimensions:
-   
     // init random seed 
     srand(time(0));
-    mt19937 eng(time(NULL));
     random_device rd;
     uniform_real_distribution<double> uniform_real(-5.0,5.0);
    
@@ -254,9 +249,80 @@ int main3(int argc, char* argv[]) {
     return 0;
 }
 
+int main4(int argc, char* argv[]) {
+    int N = atoi(argv[1]);
+
+    // Monte Carlo: Importance sampling
+
+    // Need: - timer for all methods
+    //       - variance and stddev for all methods
+
+    // Seed random number generator
+    random_device generator;
+    normal_distribution<double> distribution(0.0, 2.0);
+
+    // Initialise
+    double** x4 = new double*[6];
+    double*  fx4= new double[N];
+    
+    
+    // Calculate random numbers
+    #pragma omp parallel for
+    for (int i=0; i < 6; i++) {
+        x4[i] = new double[N];
+    }
+
+    #pragma omp parallel for
+    for (int j=0; j < 6; j++) {
+        for (int i=0; i < N; i++) {
+            x4[j][i]   = distribution(generator);
+        }
+    }
 
 
+    double intsum4 = 0.0;
+    double sigmasq = 0.0;
+    double variance= 0.0;
 
+    for (int j=0; j < 6; j++) {
+        cout << x4[j][0] << "  \t" << x4[j][1] << endl;
+    }
+
+    // Calculate f(x) at the given points
+    #pragma omp parallel for
+    for (int i=0; i < N; i++) {
+        fx4[i]   = wavefunc(x4[0][i], x4[1][i], x4[2][i] \
+                            , x4[3][i], x4[4][i], x4[5][i]) \
+                 / distribution(generator);
+    }
+
+    #pragma omp parallel for reduction(+:intsum4,sigmasq)
+    for (int i=0; i < N; i++) {
+        intsum4 += fx4[i];
+        sigmasq += fx4[i]*fx4[i];
+    }
+
+    double integral = intsum4/N;
+    sigmasq         = sigmasq/N;
+    variance        = sigmasq - integral*integral;
+    variance        = variance / N ; // ???
+
+    printf("Integral sum: %.12g , with N=%d \n", integral, N);
+    cout << "\t" << sigmasq << " x^2: " << integral*integral << endl;
+    printf("\tVariance: %.12g,\n\tstd.dev: %.12g\n", variance, sqrt(variance));
+    
+    if (argc > 3) { 
+        outputFile2(N, 1, x4[0], fx4, &argv[3]);
+    }
+
+    // Housekeeping
+
+    delete [] x4;
+    delete [] fx4;
+
+    return 0;    
+
+}
 
 
 int main(int argc, char* argv[]) {
@@ -275,6 +341,7 @@ int main(int argc, char* argv[]) {
     cout << "[1]:\tGauss-Legendre quadrature,"  << endl;
     cout << "[2]:\tGauss-Hermite quadrature,"   << endl;
     cout << "[3]:\tBrute force Monte Carlo,"    << endl;
+    cout << "[4]:\tImportance sampling Monte Carlo,"<< endl;
     int choice;
     if (argc < 3) {
         cin >> choice;
@@ -303,6 +370,13 @@ int main(int argc, char* argv[]) {
             statusMain3 = main3(argc, argv);
 
             return statusMain3;
+        case 4:
+            cout << "entered 4" << endl;
+
+            int statusMain4;
+            statusMain4 = main4(argc, argv);
+
+            return statusMain4;
         default:
             cout << "Enter valid number..." << endl;
             return 1;
