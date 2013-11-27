@@ -1,7 +1,7 @@
 CC=g++
-CFLAGS=-c -o3 -Wall -fopenmp -std=c++11
+CFLAGS=-c -O3 -Wall -fopenmp -std=c++11
 LDFLAGS=-lgomp
-SOURCES=main.cpp lib.cpp 
+SOURCES=main.cpp lib.cpp outputFile.cpp 
 OBJECTS=$(SOURCES:.cpp=.o)
 	EXECUTABLE=obl5.x
 
