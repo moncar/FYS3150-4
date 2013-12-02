@@ -3,10 +3,14 @@
 #include <omp.h>
 #include <time.h>
 #include <random>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #include "lib.h"
 #include "headers.h"
 
+
+// MHJ: Hermite zeros and weights
 #define EPS 3.0e-14
 #define PIM4 0.7511255444649425
 #define MAXIT 10
@@ -40,13 +44,24 @@ double wavefunc_red(double x1, double y1, double z1, \
 
     double r1r2=sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
 
-    //if (r1r2 > 1e-6) {
-        return 1.0 / (r1r2+1.0) ;
-    //}
-    //else {
-    //    return 0.0;
-    //}
+    if (r1r2 > 1e-6) {
+        return 1.0 / (r1r2) ;
+    }
+    else {
+        return 0.0;
+    }
 }
+
+double wavefuncsqT1(double* x, double alpha) 
+{
+    
+    double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
+    double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
+
+    return exp(- alpha*alpha * (r1sq + r2sq ));
+}
+
 
 void GaussHermite(double *x,double *w, int n)
 {
@@ -87,11 +102,69 @@ void GaussHermite(double *x,double *w, int n)
     }
 }
 
-int main1(int argc, char* argv[]) {
+void RandNoGenGauss(double **randnos, double sigma, int dims, int N)
+{
+    // Calculate random numbers
+    // GNU Scientific library implementation
+    const gsl_rng_type * T;
+    gsl_rng *r;
+    gsl_rng_env_setup();
+    T = gsl_rng_taus;    // generator function
+    r = gsl_rng_alloc(T);   // random number generator
     
-    int N;
+    // C++2011 implementation:
+    //random_device generator;
+    //normal_distribution<double> distribution(0.0, 2.0);
 
-    N = atoi(argv[1]);
+    // Initialise arrays
+    #pragma omp parallel for
+    for (int i=0; i < dims; i++) {
+        randnos[i] = new double[N];
+    }
+    cout << "Done initialising." << endl;
+
+    // Calculate RVs using numbers from "generator" w/ "distribution".
+    for (int j=0; j < dims; j++) {
+        #pragma omp parallel for
+        for (int i=0; i < N; i++) {
+            randnos[j][i]    = gsl_ran_gaussian(r, sigma);
+    //        x4[j][i]   = distribution(generator);
+        }
+        cout << "Done w/ round " << j << endl;
+    }
+
+}
+
+void LocalEnergy1(double *x1, double *y1, double *z1 \
+                , double *x2, double *y2, double *z2 \
+                , double *outputarray \
+                , double alpha, int N)
+{
+    // Calculates the local energy for the test wave function
+    // PSI_T1
+    
+    double alfalfa = alpha*alpha;
+    double r1sq;
+    double r2sq;
+    double r1r2; 
+    
+    for (int i=0; i < N; i++) {
+        // loop over all steps
+
+        r1sq = x1[i]*x1[i] + y1[i]*y1[i] + z1[i]*z1[i];
+        r2sq = x2[i]*x2[i] + y2[i]*y2[i] + z2[i]*z2[i];
+        r1r2 = sqrt((x1[i]-x2[i])*(x1[i]-x2[i]) + (y1[i]-y2[i])*(y1[i]-y2[i]) + (z1[i]-z2[i])*(z1[i]-z2[i]));
+
+        // Calculate local energy, store value in outputarray
+        outputarray[i] = 0.5 * alfalfa * (2. - alfalfa * (r1sq + r2sq)) \
+                        +0.5 * (r1sq + r2sq) + 1./r1r2;
+    } 
+
+}
+
+
+int main1(int argc, char* argv[], int N) {
+    
     cout << "Launching Gauss-Legendre integrator. N=" << (int)N << endl;
 
     // Gauss-Legendre:  integrate wave-function
@@ -130,11 +203,8 @@ int main1(int argc, char* argv[]) {
     return 0;
 }
 
-int main2(int argc, char* argv[]) {
+int main2(int argc, char* argv[], int N) {
     
-    int N;
-
-    N = atoi(argv[1]);
     cout << "Launching Gauss-Hermite integrator. N=" << (int)N << endl;
 
     // Gauss-Hermite:   integrate wave-function
@@ -172,26 +242,35 @@ int main2(int argc, char* argv[]) {
 }
 
 
-int main3(int argc, char* argv[]) {
+int main3(int argc, char* argv[], int N) {
     
     // Monte-Carlo
     
-    int N;
-
-    N = atoi(argv[1]);
-    cout << "Launching Monte Carlo integrator. N=" << (int)N << endl;
+    cout << "Launching Monte Carlo integrator. N=" << N << endl;
 
 
     // Brute-force Monte Carlo
 
     // init random seed 
-    srand(time(0));
-    random_device rd;
-    uniform_real_distribution<double> uniform_real(-5.0,5.0);
+    //srand(time(0));
+    
+    // Limits:
+    double limit = 5.0;
+
+    // GNU Scientific library implementation
+    const gsl_rng_type * T;
+    gsl_rng *r;
+    gsl_rng_env_setup();
+    T = gsl_rng_default;    // generator function
+    r = gsl_rng_alloc(T);   // random number generator
+
+    // C++2011 implementation:
+    // random_device rd;
+    // uniform_real_distribution<double> uniform_real(-5.0,5.0);
    
     // Jacobi determinant
-    // [b-a] = 2a
-    double jacobiDet  = pow((2*5), 6.0);
+    // length[-a,a] = 2a
+    double jacobiDet  = pow((2*limit), 6.0);
 
     double** xxx = new double*[6];
     double*  fx  = new double[N];
@@ -200,10 +279,12 @@ int main3(int argc, char* argv[]) {
         xxx[i] = new double[N];
     }
 
-    #pragma omp parallel for
     for (int j=0; j < 6; j++) {
+        #pragma omp parallel for
         for (int i=0; i < N; i++) {
-            xxx[j][i]   = uniform_real(rd);
+            xxx[j][i]   =  gsl_ran_flat(r, -limit, +limit); 
+                        //  C++2011:
+                        //= uniform_real(rd);
         }
     }
 
@@ -229,54 +310,79 @@ int main3(int argc, char* argv[]) {
         sigmasq += fx[i]*fx[i];
     }
 
-    double integral = intsum3/N * jacobiDet;
+    double integral = intsum3/N;
     sigmasq         = sigmasq/N;
     variance        = sigmasq - integral*integral;
     variance        = variance / N ; // ???
 
+    // Scale
+    integral *= jacobiDet;
+    double stddev = sqrt(variance) * jacobiDet;
+
     printf("Integral sum: %.12g , with N=%d \n", integral, N);
-    cout << "\t" << sigmasq << " x^2: " << integral*integral << endl;
-    printf("\tVariance: %.12g,\n\tstd.dev: %.12g\n", variance, sqrt(variance));
+    cout << "\t" << sigmasq/N << " x^2: " << integral*integral/jacobiDet << endl;
+    printf("\tVariance: %.12g,\n\tstd.dev: %.12g\n", variance, stddev);
 
     if (argc > 3) { 
         outputFile2(N, 1, xxx[1], fx, &argv[3]);
     }
     
     // Housekeeping
+    gsl_rng_free (r);
     delete [] xxx;
     delete [] fx;
 
     return 0;
 }
 
-int main4(int argc, char* argv[]) {
-    int N = atoi(argv[1]);
+int main4(int argc, char* argv[], int N) {
 
     // Monte Carlo: Importance sampling
 
     // Need: - timer for all methods
     //       - variance and stddev for all methods
 
-    // Seed random number generator
-    random_device generator;
-    normal_distribution<double> distribution(0.0, 2.0);
-
     // Initialise
-    double** x4 = new double*[6];
-    double*  fx4= new double[N];
-    
-    
+    double** x4 = new double*[6];   // holding: random numbers
+    double*  fx4= new double[N];    // holding: function values
+    clock_t t;                      // timer
+    t = clock();
+
+    // Set std.dev for Gaussian function
+    double sigma = 1./sqrt(2);
+    // Set Jacobi-det for integral, following MHJ
+    double jacobiDet = pow(4*atan(1), 3);
+
+
+//    RandNoGenGauss(x4, sigma, 6, N);
+
     // Calculate random numbers
+    // GNU Scientific library implementation
+    const gsl_rng_type * T;
+    gsl_rng *r;
+    gsl_rng_env_setup();
+    T = gsl_rng_taus;    // generator function
+    r = gsl_rng_alloc(T);   // random number generator
+    
+    // C++2011 implementation:
+    //random_device generator;
+    //normal_distribution<double> distribution(0.0, 2.0);
+
+    // Initialise arrays
     #pragma omp parallel for
     for (int i=0; i < 6; i++) {
         x4[i] = new double[N];
     }
+    cout << "Done initialising." << endl;
 
-    #pragma omp parallel for
+    // Calculate RVs using numbers from "generator" w/ "distribution".
     for (int j=0; j < 6; j++) {
+        #pragma omp parallel for
         for (int i=0; i < N; i++) {
-            x4[j][i]   = distribution(generator);
+            x4[j][i]    = gsl_ran_gaussian(r, sigma);
+    //        x4[j][i]   = distribution(generator);
         }
+        cout << "Done w/ round " << j << endl;
     }
 
 
@@ -291,10 +397,11 @@ int main4(int argc, char* argv[]) {
     // Calculate f(x) at the given points
     #pragma omp parallel for
     for (int i=0; i < N; i++) {
-        fx4[i]   = wavefunc(x4[0][i], x4[1][i], x4[2][i] \
-                            , x4[3][i], x4[4][i], x4[5][i]) \
-                 / distribution(generator);
+        fx4[i]   = wavefunc_red(x4[0][i], x4[1][i], x4[2][i] \
+                            , x4[3][i], x4[4][i], x4[5][i]);
     }
+
+    cout << "Done calculating wavefunc" << endl;
 
     #pragma omp parallel for reduction(+:intsum4,sigmasq)
     for (int i=0; i < N; i++) {
@@ -302,15 +409,26 @@ int main4(int argc, char* argv[]) {
         sigmasq += fx4[i]*fx4[i];
     }
 
+    cout << "Done w/ reduction" << endl;
+
     double integral = intsum4/N;
     sigmasq         = sigmasq/N;
     variance        = sigmasq - integral*integral;
     variance        = variance / N ; // ???
 
+    // Scaling
+    integral        = integral * jacobiDet;
+    double stddev   = sqrt(variance) * jacobiDet;
+
     printf("Integral sum: %.12g , with N=%d \n", integral, N);
-    cout << "\t" << sigmasq << " x^2: " << integral*integral << endl;
-    printf("\tVariance: %.12g,\n\tstd.dev: %.12g\n", variance, sqrt(variance));
+    printf("\tStd.dev: %.12g\n", stddev);
     
+
+    // Time spent?
+    t = clock() - t;
+    cout << "Elapsed time: " << (float)t/CLOCKS_PER_SEC << "s" << endl;
+
+    // Save if argument says so
     if (argc > 3) { 
         outputFile2(N, 1, x4[0], fx4, &argv[3]);
     }
@@ -323,6 +441,97 @@ int main4(int argc, char* argv[]) {
     return 0;    
 
 }
+
+int mainVMC1(int argc, char* argv[], int N) {
+    // Variational part: using test wave function PSI_T1
+    // Solution strategy:
+    //  - Create 6 random nos - one for each dim
+    //  - Calc wave func
+    //  - Check ratio: new wavefunc sq / old wavefunc sq >= ran[0,1]?
+    //  - YES:  use random nos func as starting point,
+    //          save wavefunc value,
+    //          save random nos as locations,
+    //          iteration++
+    //  - NO: keep old ones, try new sample, iteration = iteration
+
+    // Initialise
+    double** xVMC1 = new double*[6];   // holding: random numbers
+    double*  fxVMC1= new double[N];    // holding: function values
+    clock_t t;                      // timer
+    t = clock();
+
+    // Set std.dev for Gaussian function
+    double sigma = 1./sqrt(2);
+    // Set Jacobi-det for integral, following MHJ
+    double jacobiDet = pow(4*atan(1), 3);
+
+    
+    // Calculate random number
+    // GNU Scientific library implementation
+    const gsl_rng_type * T;
+    gsl_rng *r;
+    gsl_rng_env_setup();
+    T = gsl_rng_taus;    // generator function
+    r = gsl_rng_alloc(T);   // random number generator
+    
+    // C++2011 implementation:
+    //random_device generator;
+    //normal_distribution<double> distribution(0.0, 2.0);
+
+    // Initialise arrays
+    #pragma omp parallel for
+    for (int i=0; i < 6; i++) {
+        xVMC1[i] = new double[N];
+    }
+    cout << "Done initialising." << endl;
+
+    // Set initial trial wavefunc
+    double xi[6] = {0.0, 0.0, 0.0 \
+                    ,0.0, 0.0, 0.0 };
+    double xf[6];
+
+    xVMC1[0] = xi;
+
+    //tmp alpha
+    double alpha = 1.0;
+    fxVMC1[0] = wavefuncsqT1(xi, alpha);
+    
+    int n       = 1;
+    double step = 0.5;
+    double randno;
+    double randno2;
+    double ratio;
+    while (n < N) {
+        // Calculate RVs using numbers from "generator" w/ "distribution".
+        randno = gsl_rng_uniform(r);    // in range [0,1).
+        // Transform no -> [-1,1):
+        randno2= 2*randno - 1.0;
+        // Calculate new step:
+        for (int j=0; j<6; j++) { xf[j] = xi[j] + randno2*step; }
+
+
+        // Calc wavefunc ratio
+        ratio = wavefuncsqT1(xf, alpha) \
+                /fxVMC1[n-1];
+        cout << "ratio: " << ratio << endl;
+
+        xi = xf; ///// FIXIT
+        n++;
+    }
+
+    
+    // Time spent?
+    t = clock() - t;
+    cout << "Elapsed time: " << (float)t/CLOCKS_PER_SEC << "s" << endl;
+
+    // Housekeeping
+    delete [] xVMC1;
+    delete [] fxVMC1;    
+
+    return 0;    
+}
+
+    
 
 
 int main(int argc, char* argv[]) {
@@ -338,10 +547,20 @@ int main(int argc, char* argv[]) {
         cout << "Launching integrator. N=" << (int)N << endl;
     }
 
+    // Display number of possible threads
+    int numthreads = omp_get_max_threads();
+    int numcores = omp_get_num_procs();
+    cout << "Number of avail threads: " << numthreads << endl;
+    cout << "Number of avail cores: " << numcores << endl;
+//    omp_set_dynamic(0);
+//    omp_set_num_threads(numthreads);
+
+
     cout << "[1]:\tGauss-Legendre quadrature,"  << endl;
     cout << "[2]:\tGauss-Hermite quadrature,"   << endl;
     cout << "[3]:\tBrute force Monte Carlo,"    << endl;
     cout << "[4]:\tImportance sampling Monte Carlo,"<< endl;
+    cout << "[5]:\tVariational Monte Carlo, wavefunc 1,"<< endl;
     int choice;
     if (argc < 3) {
         cin >> choice;
@@ -353,28 +572,35 @@ int main(int argc, char* argv[]) {
         case 1: 
             cout << "Entered 1" << endl;
             int statusMain1;
-            statusMain1 = main1(argc, argv);
+            statusMain1 = main1(argc, argv, N);
 
             return statusMain1;
         case 2:
             cout << "entered 2" << endl;
 
             int statusMain2;
-            statusMain2 = main2(argc, argv);
+            statusMain2 = main2(argc, argv, N);
 
             return statusMain2;
         case 3:
             cout << "entered 3" << endl;
 
             int statusMain3;
-            statusMain3 = main3(argc, argv);
+            statusMain3 = main3(argc, argv, N);
 
             return statusMain3;
         case 4:
             cout << "entered 4" << endl;
 
             int statusMain4;
-            statusMain4 = main4(argc, argv);
+            statusMain4 = main4(argc, argv, N);
+
+            return statusMain4;
+        case 5:
+            cout << "entered 5" << endl;
+
+            int statusMain5;
+            statusMain5 = mainVMC1(argc, argv, N);
 
             return statusMain4;
         default:
