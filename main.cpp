@@ -57,7 +57,7 @@ double wavefuncsqT1(double* x, double alpha)
     
     double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
     double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
-    double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
+    //double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
 
     return exp(- alpha*alpha * (r1sq + r2sq ));
 }
@@ -135,9 +135,8 @@ void RandNoGenGauss(double **randnos, double sigma, int dims, int N)
 
 }
 
-void LocalEnergy1(double *x1, double *y1, double *z1 \
-                , double *x2, double *y2, double *z2 \
-                , double *outputarray \
+double LocalEnergy1(double x1, double y1, double z1 \
+                , double x2, double y2, double z2 \
                 , double alpha, int N)
 {
     // Calculates the local energy for the test wave function
@@ -151,13 +150,14 @@ void LocalEnergy1(double *x1, double *y1, double *z1 \
     for (int i=0; i < N; i++) {
         // loop over all steps
 
-        r1sq = x1[i]*x1[i] + y1[i]*y1[i] + z1[i]*z1[i];
-        r2sq = x2[i]*x2[i] + y2[i]*y2[i] + z2[i]*z2[i];
-        r1r2 = sqrt((x1[i]-x2[i])*(x1[i]-x2[i]) + (y1[i]-y2[i])*(y1[i]-y2[i]) + (z1[i]-z2[i])*(z1[i]-z2[i]));
+        r1sq = x1*x1 + y1*y1 + z1*z1;
+        r2sq = x2*x2 + y2*y2 + z2*z2;
+        r1r2 = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
 
+        //cout << r1sq+r2sq << " \t" << 1./r1r2 << endl;
         // Calculate local energy, store value in outputarray
-        outputarray[i] = 0.5 * alfalfa * (2. - alfalfa * (r1sq + r2sq)) \
-                        +0.5 * (r1sq + r2sq) + 1./r1r2;
+        return 0.5 * alfalfa * (2. - alfalfa * (r1sq + r2sq)) \
+              +0.5 * (r1sq + r2sq) + 1./r1r2;
     } 
 
 }
@@ -455,8 +455,9 @@ int mainVMC1(int argc, char* argv[], int N) {
     //  - NO: keep old ones, try new sample, iteration = iteration
 
     // Initialise
-    double** xVMC1 = new double*[6];   // holding: random numbers
-    double*  fxVMC1= new double[N];    // holding: function values
+    double** xVMC1 = new double*[N];   // holding: random numbers
+    double*  fxVMC1= new double[2*N];    // holding: function values
+    double*  ergLoc= new double[N];    // holding: local energy values
     clock_t t;                      // timer
     t = clock();
 
@@ -480,53 +481,136 @@ int mainVMC1(int argc, char* argv[], int N) {
 
     // Initialise arrays
     #pragma omp parallel for
-    for (int i=0; i < 6; i++) {
-        xVMC1[i] = new double[N];
+    for (int j=0; j < 6; j++) {
+        xVMC1[j] = new double[N];
     }
     cout << "Done initialising." << endl;
 
     // Set initial trial wavefunc
-    double xi[6] = {0.0, 0.0, 0.0 \
-                    ,0.0, 0.0, 0.0 };
-    double xf[6];
+    //
 
-    xVMC1[0] = xi;
+    //for (int j=0; j<6; j++) { xVMC1[j][0] = xi[j]; }
 
-    //tmp alpha
-    double alpha = 1.0;
-    fxVMC1[0] = wavefuncsqT1(xi, alpha);
+
     
-    int n       = 1;
-    double step = 0.5;
-    double randno;
-    double randno2;
-    double ratio;
-    while (n < N) {
-        // Calculate RVs using numbers from "generator" w/ "distribution".
-        randno = gsl_rng_uniform(r);    // in range [0,1).
-        // Transform no -> [-1,1):
-        randno2= 2*randno - 1.0;
-        // Calculate new step:
-        for (int j=0; j<6; j++) { xf[j] = xi[j] + randno2*step; }
+    int variations= 20;     // alpha variations
+    double alphast= 0.01;    
+    double alpha0 = 0.95;
+    double* alphas= new double[variations];
+    double* ergtot= new double[variations];
+    double* stddev= new double[variations];
+    double* variances = new double[variations];
+
+    for (int a=0; a < variations; a++) { alphas[a] = alpha0 + a*alphast; }
+
+    double  step = 0.0005;
+    int     n;
+    int     randcord;
+    double  randno;
+    double  randno2;
+    double  randno3;
+    double  probval;
+    double  ratio;
+    double  ergloc;
+    double  ergloc_tmp;
+    double  ergloc_sq;
+    
+    
+    // Loop over all alphas
+    #pragma omp parallel for private(ergloc,ergloc_tmp,ergloc_sq,n)
+    for (int a=0; a< variations; a++) {
+        cout << "Iterating for alpha=" << alphas[a] << endl;
+        ergloc      = 0.0;
+        ergloc_tmp  = 0.0;
+        ergloc_sq   = 0.0;
+        n       = 1;
+        
+        // Choose starting position
+        double xi[6] = {1.0, 1.0, 1.0 \
+                        ,2.0, 2.0, 2.0 };
+        double xf[6] = {0.0, 0.0, 0.0 \
+                    ,0.0, 0.0, 0.0 };
+        fxVMC1[0] = wavefuncsqT1(xi, alphas[a]);
 
 
-        // Calc wavefunc ratio
-        ratio = wavefuncsqT1(xf, alpha) \
-                /fxVMC1[n-1];
-        cout << "ratio: " << ratio << endl;
+        while (n < N) {
+            // Pick random coordinate [0,5] and calc ratio
+            randcord = (int)floor(6*gsl_rng_uniform(r));
+            // Calculate RVs
+            randno = gsl_rng_uniform(r);    // in range [0,1).
+            randno3= gsl_rng_uniform(r);    // in range [0,1).
+            // Transform no -> [-1,1):
+            randno2= 2*randno - 1.0;
 
-        xi = xf; ///// FIXIT
-        n++;
+            // Calculate new step:
+            for (int j=0; j<6; j++) { xf[j] = xi[j]; }
+            xi[randcord] = xf[randcord] + randno2*step;
+
+            // Calc wavefunc ratio
+            probval = wavefuncsqT1(xi, alphas[a]);
+            ratio = probval \
+                    /fxVMC1[n-1];
+
+            // if ratio > randno
+            // continue
+            if (ratio > randno3) {
+                for (int j=0; j<6; j++) { 
+                    xVMC1[j][n] = xf[j];
+                    xi[j] = xf[j];
+                }
+                // Calculate local energy
+                ergloc_tmp= LocalEnergy1(xf[0], xf[1], xf[2] \
+                                       , xf[3], xf[4], xf[5] \
+                                       , alphas[a], N); 
+                ergloc += ergloc_tmp;
+                ergloc_sq += ergloc_tmp * ergloc_tmp;
+                // Calculate probability value
+                fxVMC1[n]= probval;
+                n++;
+            } 
+        }
+        // Calculate Hamiltonian 
+        ergtot[a]   = 1./N * ergloc;
+
+        // Calculate variance
+        ergloc_sq   = 1./N * ergloc_sq;
+        variances[a]= ergloc_sq - ergtot[a]*ergtot[a];
+        stddev[a]   = sqrt(variances[a]/N);
+
+        cout << "\tVar: " << variances[a] << ", ergloc_sq: " << ergloc_sq << endl;
+        cout << "\tergloc: " << ergloc << endl;
+
+        cout << "\tTotal energy: " << ergtot[a] << endl;
+        cout << "\tStd.dev: " << stddev[a] << endl;
     }
 
-    
+
     // Time spent?
     t = clock() - t;
     cout << "Elapsed time: " << (float)t/CLOCKS_PER_SEC << "s" << endl;
+    
+    double* xVMCvals = new double[N];
+    for (int i=0; i<N; i++) { 
+        xVMCvals[i] = xVMC1[0][i]; 
+    }
+//    for (int i=N; i<2*N; i++) {
+//        fxVMC1[i] = ergLoc[i-N];
+//    }
+
+    if (argc > 3) { 
+//        outputFile2(N, 1, xVMCvals, fxVMC1, &argv[3]);
+        outputFile2(variations, 1, alphas, stddev, &argv[3]);        
+    }
 
     // Housekeeping
+    delete [] alphas;
     delete [] xVMC1;
-    delete [] fxVMC1;    
+    delete [] fxVMC1;
+    delete [] xVMCvals;
+    delete [] ergLoc;
+    delete [] ergtot; 
+    delete [] stddev;
+    delete [] variances;
 
     return 0;    
 }
