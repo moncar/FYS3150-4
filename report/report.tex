@@ -80,6 +80,41 @@
 
 \section{Introduction}
 
+\subsection{Numerical integration}
+To calculate the expectation value of an observable $\mathbf{O}(x,p)$, where $x$ denotes position and $p$ denotes momentum,
+\begin{equation}
+    \langle O \rangle   =   \langle \psi | \hat{O} \psi \rangle
+    \label{eq:observable}
+\end{equation}
+where the transition $\mathbf{O} \to \hat{\mathbf{O}}$ denotes that the observable can be found using the corresponding operator on the wave function. Using integral notation, the above expression becomes
+\begin{equation}
+    \mathbf{O}(p,x)   =   \int\limits_{-\infty}^{+\infty} \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \; \hat{\mathbf{O}} \; \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N )
+    \label{eq:observable_int1}
+\end{equation}
+where $\mathbf{R}_i$ represents the coordinates of particle $i$ of the wave function. Above it was assumed that the wave function has been normalised, that is,
+\[ \langle \psi | \psi \rangle = \int\limits_{-\infty}^{+\infty}\! \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \, \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N = 1 \]
+otherwise, the expectation value of the observable $\mathbf{O}$ can be found as
+\begin{equation}
+    \mathbf{O}(p,x)   =   \frac{\int_{-\infty}^{+\infty} \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \; \hat{\mathbf{O}} \; \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) }{ \int_{-\infty}^{+\infty} \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \, \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N }.
+    \label{eq:observable_final}
+\end{equation}
+
+In this project, the observable to be found is the energy $E$. From the Schr\"odinger equation it follows that the corresponding operator is the Hamiltonian operator $\hat{\mathbf{H}}$,
+\begin{equation}
+    \hat{\mathbf{H}} \psi = E \psi
+    \label{eq:schrodinger}
+\end{equation}
+where the Hamiltonian operator is defined as
+\begin{equation}
+    \hat{\mathbf{H}}    \equiv  -\frac{\hbar^2}{2m} \nabla^2 + V(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N).
+    \label{eq:hamiltonian}
+\end{equation}
+
+The standard deviation and variance of the determinate states of an observable $Q$, including the energy, can be found. Here, the corresponding operator of the observable $Q$ is $\hat{Q}$.
+\begin{align*}
+    \sigma^2 &= \langle Q^2 \rangle - \langle Q \rangle^2 \\
+            &=  \langle \psi | \hat{Q}^2 | \psi \rangle - 
+\end{align*}<++>
 
 \section{Methods}
 \subsection{Gauss-Legendre}
