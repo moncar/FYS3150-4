@@ -81,7 +81,7 @@
 \section{Introduction}
 
 \subsection{Numerical integration}
-To calculate the expectation value of an observable $\mathbf{O}(x,p)$, where $x$ denotes position and $p$ denotes momentum,
+To calculate the expectation value of an observable $\mathbf{O}(x,p)$\footnote{Notation is borrowed from \cite{Griffiths:2005} and \cite{MHJ:2013}.}, where $x$ denotes position and $p$ denotes momentum,
 \begin{equation}
     \langle O \rangle   =   \langle \psi | \hat{O} \psi \rangle
     \label{eq:observable}
@@ -110,16 +110,87 @@ where the Hamiltonian operator is defined as
     \label{eq:hamiltonian}
 \end{equation}
 
-The standard deviation and variance of the determinate states of an observable $Q$, including the energy, can be found. Here, the corresponding operator of the observable $Q$ is $\hat{Q}$.
+The standard deviation and variance of the determinate states of an observable $\mathbf{O}$, including the energy, can be found. Here, the corresponding operator of the observable $\mathbf{O}$ is $\hat{\mathbf{O}}$. The variance is
 \begin{align*}
-    \sigma^2 &= \langle Q^2 \rangle - \langle Q \rangle^2 \\
-            &=  \langle \psi | \hat{Q}^2 | \psi \rangle - 
-\end{align*}<++>
+    \sigma^2 &= \langle O^2 \rangle - \langle O \rangle^2 \\
+    &=  \langle \psi | \hat{O} \hat{O} | \psi \rangle - \langle \psi | \hat{O} \psi \rangle^2 \\
+    &=  \langle \psi | \hat{O} q | \psi \rangle - \langle \psi | q | \psi \rangle^2 \\
+    &= q \langle \psi | \hat{O} | \psi \rangle - \left( q \langle \psi | \psi \rangle \right)^2 \\
+    &= q^2 - \left( q \right)^2 \\
+    &= 0
+\end{align*}
+where it was used that the eigenvalue for the operator $\hat{\mathbf{O}}$ on $\psi$ is $q$, a number which can be moved outside the inner product, and that the wave function is normalised, $\langle \psi | \psi \rangle = 1$.
+
+\subsection{Quantum mechanical cases}
+The quantum mechanical cases of this project will be two electrons interacting in a harmonic oscillator well, with wave function
+\begin{equation}
+    \psi_{T1}(\mathbf{r}_1, \mathbf{r}_2) = \exp \left[ -\alpha^2 \left( r_1^2 + r_2^2  \right)/2 \right]
+    \label{eq:wavefuncT1}
+\end{equation}
+and potential
+\begin{equation}
+    V(\mathbf{r}_1, \mathbf{r}_2) = \frac{1}{2} \left( r_1^2 + r_2^2 \right) + \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 | }
+    \label{eq:potential}
+\end{equation}
+where 
+\[ \mathbf{r}_i \equiv x_i \mathbf{e}_x + y_i \mathbf{e}_y + z_i \mathbf{e}_z. \]
+
+Another case which will be studied is an approach to the helium atom where the wave function will resemble 
+\begin{equation}
+    \psi_{T2}(\mathbf{r}_1, \mathbf{r}_2, \mathbf{r}_{12}) = \exp \left[ -\alpha^2 \left( r_1^2 - r_2^2 \right)/2 \right] \exp \left[ \frac{r_{12}}{2(1 + \beta r_{12})} \right]
+    \label{eq:wavefuncT2}
+\end{equation}
+where $\mathbf{r}_{12} \equiv \mathbf{r}_1 - \mathbf{r}_2$, and the potential is the same as in eq.~(\ref{eq:potential}).
+
+This project will use different methods to determine observables defined in eq.~(\ref{eq:observable_final}). Gaussian quadrature, with orthogonal Legendre and Hermite polynomials are used as well as brute force Monte Carlo sampling and importance sampling from a normal distribution. 
+
+This project will also apply variational Monte Carlo techniques for both quantum mechanical cases, where the factors $\alpha$ and $\beta$ are varied and the Metropolis algorithm is applied to create the distribution. 
 
 \section{Methods}
-\subsection{Gauss-Legendre}
-The Gauss-Legendre quadrature, o
+Gaussian quadrature, brute force Monte Carlo and importance sampling Monte Carlo are applied to find the expectation value of the correlation energy between two electrons, given as
+\begin{align}
+    \langle \frac{1}{| \mathbf{r}_1 - \mathbf{r}_2 |} \rangle &= \int\limits_{-\infty}^{+\infty} \! \diff \mathbf{r}_1 \diff \mathbf{r}_2 \; \psi_{T1}^* \; \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 |} \; \psi_{T1} \notag \\
+    &= \int\limits_{-\infty}^{+\infty} \! \diff \mathbf{r}_1 \diff \mathbf{r}_2 \; \exp\left[ -\alpha \left( r_1^2 + r_2^2 \right) \right] \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 |}.
+    \label{eq:exp_corr_energy}
+\end{align}
 
+Variational Monte Carlo is applied to find the expectation value for the Hamiltonian operator for the wave functions $\psi_{T1}$ and $\psi_{T2}$. 
+
+\subsection{Gaussian quadrature}
+Gaussian quadrature differs from other quadrature methods, or methods of numerical integration, in the way the way the weights $w_i$ and integration points $x_i$ are chosen in the approximation
+\begin{equation}
+    \int_{a}^{b} f(x) \diff x \approx \sum_i f(x_i) w_i
+    \label{eq:numint}
+\end{equation}
+where choices of $x_i$ and $w_i$ for two other quadrature methods are:
+\begin{description}
+    \item[Midpoint method] The integral is approximated through a subdivision into $N$ intervals of equal length $h = (b-a)/N$ which work as the weights $w_i = h$, whereas the integration points are the midpoints of each interval, $x_i = a + (i/2) h \equiv x_{i-1/2}$ for $i=1,2,\dots,N$. The local error goes as $O(h^3)$ whereas the global error goes as $O(h^2)$.
+    \item[Trapezoidal method] The function to be integrated is evaluated at $N$ points $x_i = a + ih$ with weights $w_i = h$ for $i=2,3,\dots,N-1$ whereas for $i=1,N$, $w_i = h/2$. The local error goes as $O(h^3)$ and the global error goes as $O(h^2)$. 
+\end{description} 
+
+In the case of Gaussian quadrature, the integration points $x_i$ are chosen as the locations of the zeros of an orthogonal polynomial of order $N$ which is orthogonal for a certain range $[p_i, p_f]$. 
+
+The choice of orthogonal polynomial reflects both the integration range, and the form of the integral -- it is useful to consider a rewrite where the integrand $f(x) \to W(x) g(x)$ with $W(x)$ the \textit{weight function} that project the function $g(x)$ onto the chosen orthogonal basis of polynomials. 
+
+In the case where $W(x)$ can be singled out, the Gaussian quadrature consists of evaluating $g(x_i)$ at the zeros of the chosen orthogonal polynomial multiplied by the weights $w_i$, who also are determined by the polynomial.
+
+\begin{table}
+    \centering
+    \caption{Relevant weight functions that project a given function $g(x)$ onto a basis of orthogonal polynomials that are orthogonal for the specified interval. From \cite{MHJ:2013}.}
+    \begin{tabular}{l l l}
+        \hline 
+        Weight function & Interval, $x\in[a,b]$ & Orthogonal polynomial \\
+        \hline
+        $W(x) = 1$          & $[-1,1]$              & Legendre \\
+        $W(x) = e^{-x^2}$   & $(-\infty, +\infty)$  & Hermite \\
+        $W(x) = x^\alpha e^{-x}$ & $[0, +\infty)$   & Laguerre \\
+        $W(x) = 1/\sqrt{1 - x^2}$& $[-1, 1]$        & Chebyshev \\
+        \hline
+    \end{tabular}
+    \label{tab:polys}
+\end{table}
+
+Table (\ref{tab:polys}) summarises possible weight functions, orthogonality ranges and orthogonal polynomials (from \cite{MHJ:2013}).
 
 \section{Results}
 \subsection{Gauss-Legendre quadrature}
