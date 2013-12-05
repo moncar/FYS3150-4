@@ -1,0 +1,272 @@
+\documentclass[a4paper,11pt]{article}
+
+
+%\documentclass[journal = ancham]{achemso}
+%\setkeys{acs}{useutils = true}
+%\usepackage{fullpage}
+%\usepackage{natbib}
+\pretolerance=2000
+\tolerance=6000
+\hbadness=6000
+%\usepackage[landscape]{geometry}
+%\usepackage{pxfonts}
+%\usepackage{cmbright}
+%\usepackage[varg]{txfonts}
+%\usepackage{mathptmx}
+%\usepackage{tgtermes}
+\usepackage[utf8]{inputenc}
+%\usepackage{fouriernc}
+%\usepackage[adobe-utopia]{mathdesign}
+\usepackage[T1]{fontenc}
+%\usepackage[norsk]{babel}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+%\usepackage[version=3]{mhchem}
+\usepackage{pstricks}
+\usepackage[font=small,labelfont=bf,tableposition=below]{caption}
+\usepackage{subfig}
+%\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{sverb}
+%\usepackage{microtype}
+%\usepackage{enumerate}
+\usepackage{enumitem}
+%\usepackage{lineno}
+%\usepackage{booktabs}
+%\usepackage{changepage}
+%\usepackage[flushleft]{threeparttable}
+\usepackage{pdfpages}
+\usepackage{float}
+\usepackage{mathtools}
+%\usepackage{etoolbox}
+%\usepackage{xstring}
+
+\floatstyle{plaintop}
+\restylefloat{table}
+%\floatsetup[table]{capposition=top}
+
+\setcounter{secnumdepth}{3}
+
+\newcommand{\tr}{\, \text{tr}\,}
+\newcommand{\diff}{\ensuremath{\; \text{d}}}
+\newcommand{\sgn}{\ensuremath{\; \text{sgn}}}
+\newcommand{\UA}{\ensuremath{_{\uparrow}}}
+\newcommand{\RA}{\ensuremath{_{\rightarrow}}}
+\newcommand{\QED}{\left\{ \hfill{\textbf{QED}} \right\}}
+
+%\newcommand{\diff}{%
+%    \IfEqCase{frac{\diff}{%
+%        {\ensuremath{frac{\text{d}} }}%
+%        {\ensuremath{\; \text{d}} }% 
+%    }[\PackageError{diff}{Problem with diff}{}]%
+%}%
+
+
+\date{\today}
+\title{Numerical integration:\\ Two electrons in a harmonic oscillator well\\ \small{Project 5 -- FYS4150}}
+\author{Candidate \textbf{105}}
+
+
+\begin{document}
+
+
+\onecolumn
+\maketitle{}
+
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Numerical integration}
+To calculate the expectation value of an observable $\mathbf{O}(x,p)$\footnote{Notation is borrowed from \cite{Griffiths:2005} and \cite{MHJ:2013}.}, where $x$ denotes position and $p$ denotes momentum,
+\begin{equation}
+    \langle O \rangle   =   \langle \psi | \hat{O} \psi \rangle
+    \label{eq:observable}
+\end{equation}
+where the transition $\mathbf{O} \to \hat{\mathbf{O}}$ denotes that the observable can be found using the corresponding operator on the wave function. Using integral notation, the above expression becomes
+\begin{equation}
+    \mathbf{O}(p,x)   =   \int\limits_{-\infty}^{+\infty} \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \; \hat{\mathbf{O}} \; \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N )
+    \label{eq:observable_int1}
+\end{equation}
+where $\mathbf{R}_i$ represents the coordinates of particle $i$ of the wave function. Above it was assumed that the wave function has been normalised, that is,
+\[ \langle \psi | \psi \rangle = \int\limits_{-\infty}^{+\infty}\! \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \, \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N = 1 \]
+otherwise, the expectation value of the observable $\mathbf{O}$ can be found as
+\begin{equation}
+    \mathbf{O}(p,x)   =   \frac{\int_{-\infty}^{+\infty} \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \; \hat{\mathbf{O}} \; \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) }{ \int_{-\infty}^{+\infty} \diff \mathbf{R}_1 \diff \mathbf{R}_2 \dots \diff \mathbf{R}_N \; \psi^*(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N ) \, \psi(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N }.
+    \label{eq:observable_final}
+\end{equation}
+
+In this project, the observable to be found is the energy $E$. From the Schr\"odinger equation it follows that the corresponding operator is the Hamiltonian operator $\hat{\mathbf{H}}$,
+\begin{equation}
+    \hat{\mathbf{H}} \psi = E \psi
+    \label{eq:schrodinger}
+\end{equation}
+where the Hamiltonian operator is defined as
+\begin{equation}
+    \hat{\mathbf{H}}    \equiv  -\frac{\hbar^2}{2m} \nabla^2 + V(\mathbf{R}_1, \mathbf{R}_2, \dots, \mathbf{R}_N).
+    \label{eq:hamiltonian}
+\end{equation}
+
+The standard deviation and variance of the determinate states of an observable $\mathbf{O}$, including the energy, can be found. Here, the corresponding operator of the observable $\mathbf{O}$ is $\hat{\mathbf{O}}$. The variance is
+\begin{align*}
+    \sigma^2 &= \langle O^2 \rangle - \langle O \rangle^2 \\
+    &=  \langle \psi | \hat{O} \hat{O} | \psi \rangle - \langle \psi | \hat{O} \psi \rangle^2 \\
+    &=  \langle \psi | \hat{O} q | \psi \rangle - \langle \psi | q | \psi \rangle^2 \\
+    &= q \langle \psi | \hat{O} | \psi \rangle - \left( q \langle \psi | \psi \rangle \right)^2 \\
+    &= q^2 - \left( q \right)^2 \\
+    &= 0
+\end{align*}
+where it was used that the eigenvalue for the operator $\hat{\mathbf{O}}$ on $\psi$ is $q$, a number which can be moved outside the inner product, and that the wave function is normalised, $\langle \psi | \psi \rangle = 1$.
+
+\subsection{Quantum mechanical cases}
+The quantum mechanical cases of this project will be two electrons interacting in a harmonic oscillator well, with wave function
+\begin{equation}
+    \psi_{T1}(\mathbf{r}_1, \mathbf{r}_2) = \exp \left[ -\alpha^2 \left( r_1^2 + r_2^2  \right)/2 \right]
+    \label{eq:wavefuncT1}
+\end{equation}
+and potential
+\begin{equation}
+    V(\mathbf{r}_1, \mathbf{r}_2) = \frac{1}{2} \left( r_1^2 + r_2^2 \right) + \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 | }
+    \label{eq:potential}
+\end{equation}
+where 
+\[ \mathbf{r}_i \equiv x_i \mathbf{e}_x + y_i \mathbf{e}_y + z_i \mathbf{e}_z. \]
+
+Another case which will be studied is an approach to the helium atom where the wave function will resemble 
+\begin{equation}
+    \psi_{T2}(\mathbf{r}_1, \mathbf{r}_2, \mathbf{r}_{12}) = \exp \left[ -\alpha^2 \left( r_1^2 - r_2^2 \right)/2 \right] \exp \left[ \frac{r_{12}}{2(1 + \beta r_{12})} \right]
+    \label{eq:wavefuncT2}
+\end{equation}
+where $\mathbf{r}_{12} \equiv \mathbf{r}_1 - \mathbf{r}_2$, and the potential is the same as in eq.~(\ref{eq:potential}).
+
+This project will use different methods to determine observables defined in eq.~(\ref{eq:observable_final}). Gaussian quadrature, with orthogonal Legendre and Hermite polynomials are used as well as brute force Monte Carlo sampling and importance sampling from a normal distribution. 
+
+This project will also apply variational Monte Carlo techniques for both quantum mechanical cases, where the factors $\alpha$ and $\beta$ are varied and the Metropolis algorithm is applied to create the distribution. 
+
+\section{Methods}
+Gaussian quadrature, brute force Monte Carlo and importance sampling Monte Carlo are applied to find the expectation value of the correlation energy between two electrons, given as
+\begin{align}
+    \langle \frac{1}{| \mathbf{r}_1 - \mathbf{r}_2 |} \rangle &= \int\limits_{-\infty}^{+\infty} \! \diff \mathbf{r}_1 \diff \mathbf{r}_2 \; \psi_{T1}^* \; \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 |} \; \psi_{T1} \notag \\
+    &= \int\limits_{-\infty}^{+\infty} \! \diff \mathbf{r}_1 \diff \mathbf{r}_2 \; \exp\left[ -\alpha \left( r_1^2 + r_2^2 \right) \right] \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 |}.
+    \label{eq:exp_corr_energy}
+\end{align}
+
+Variational Monte Carlo is applied to find the expectation value for the Hamiltonian operator for the wave functions $\psi_{T1}$ and $\psi_{T2}$. 
+
+\subsection{Gaussian quadrature}
+Gaussian quadrature differs from other quadrature methods, or methods of numerical integration, in the way the way the weights $w_i$ and integration points $x_i$ are chosen in the approximation
+\begin{equation}
+    \int_{a}^{b} f(x) \diff x \approx \sum_i f(x_i) w_i
+    \label{eq:numint}
+\end{equation}
+where choices of $x_i$ and $w_i$ for two other quadrature methods are:
+\begin{description}
+    \item[Midpoint method] The integral is approximated through a subdivision into $N$ intervals of equal length $h = (b-a)/N$ which work as the weights $w_i = h$, whereas the integration points are the midpoints of each interval, $x_i = a + (i/2) h \equiv x_{i-1/2}$ for $i=1,2,\dots,N$. The local error goes as $O(h^3)$ whereas the global error goes as $O(h^2)$.
+    \item[Trapezoidal method] The function to be integrated is evaluated at $N$ points $x_i = a + ih$ with weights $w_i = h$ for $i=2,3,\dots,N-1$ whereas for $i=1,N$, $w_i = h/2$. The local error goes as $O(h^3)$ and the global error goes as $O(h^2)$. 
+\end{description} 
+
+In the case of Gaussian quadrature, the integration points $x_i$ are chosen as the locations of the zeros of an orthogonal polynomial of order $N$ which is orthogonal for a certain range $[p_i, p_f]$.  
+
+The choice of orthogonal polynomial reflects both the integration range, and the form of the integrand -- it is useful to consider a rewrite where the integrand $f(x) \to W(x) g(x)$ with $W(x)$ the \textit{weight function} that project the function $g(x)$ onto the chosen orthogonal basis of polynomials. 
+
+In the case where $W(x)$ can be singled out, the Gaussian quadrature consists of evaluating $g(x_i)$ at the zeros of the chosen orthogonal polynomial and multiplying with the weights $w_i$.
+
+To determine the weights $w_i$, a closer look on the polynomial representation of the initial integrand $f(x)$ is required. In Gaussian quadrature, a function of order $N$ can be represented by a polynomial $P_{2N-1}(x)$ of order $2N-1$. This can, in turn, be represented by the orthogonal polynomials $L_N(x)$, $P_{N-1}(x)$ and $Q_{N-1}(x)$,
+\begin{equation}
+    \int f(x) \diff x \approx \int P_{2N-1}(x) \diff x = \int L_N(x) P_{N-1}(x) + Q_{N-1}(x) \diff x
+    \label{eq:quadrature}
+\end{equation}
+where $L_N(x)$ is the chosen orthogonal polynomial giving the basis for the function space (for a given range of $x$). As $P_{N-1}(x)$ is orthogonal to $L_N(x)$ (the differences in order $N-1$ and $N$ lead to the product being zero. From eqs.~(5.10, 5.14) in \cite{MHJ:2013}), the integral can be written
+\[ \int f(x) \diff x \approx \int Q_{N-1}(x) \diff x. \]
+
+The numerical approximation gives that
+\[ \int Q_{N-1}(x) \diff x \approx \sum_i Q_{N-1}(x_i) w_i \]
+where the weights can be determined by
+
+
+\begin{table}
+    \centering
+    \caption{Relevant weight functions that project a given function $g(x)$ onto a basis of orthogonal polynomials that are orthogonal for the specified interval. From \cite{MHJ:2013}.}
+    \begin{tabular}{l l l}
+        \hline 
+        Weight function & Interval, $x\in[a,b]$ & Orthogonal polynomial \\
+        \hline
+        $W(x) = 1$          & $[-1,1]$              & Legendre \\
+        $W(x) = e^{-x^2}$   & $(-\infty, +\infty)$  & Hermite \\
+        $W(x) = x^\alpha e^{-x}$ & $[0, +\infty)$   & Laguerre \\
+        $W(x) = 1/\sqrt{1 - x^2}$& $[-1, 1]$        & Chebyshev \\
+        \hline
+    \end{tabular}
+    \label{tab:polys}
+\end{table}
+
+Table (\ref{tab:polys}) summarises possible weight functions, orthogonality ranges and orthogonal polynomials (from \cite{MHJ:2013}).
+
+\section{Results}
+\subsection{Gauss-Legendre quadrature}
+
+\begin{table}
+    \centering
+    \caption{Gauss-Legendre quadrature integration results. Note that $N=128$ required $128^6 \approx 4400$ billion integration points and required more than three hours of computations on the 64-core computing node \texttt{nekkar.uio.no}, fully parallelised using OpenMP.}
+    \begin{tabular}{l l}
+        \hline
+        $N$ &   Results \\
+        \hline
+        8   &   5.74062 \\
+        16  &   19.9532 \\
+        32  &   23.4625 \\
+        64  &   24.4124 \\
+        128 &   24.6569 \\
+        \hline
+    \end{tabular}
+    \label{tab:<+label+>}
+\end{table}<++>
+
+\begin{table}
+    \centering
+    \caption{Gauss-Hermite quadrature integration results.}
+    \begin{tabular}{l l}
+        \hline
+        $N$ &   Results \\
+        \hline
+        8   &   21.5379 \\
+        16  &   23.0806 \\
+        32  &   23.8942 \\
+        64  &   24.3128 \\
+        128 &   24.5251 \\
+        \hline
+    \end{tabular}
+    \label{tab:<+label+>}
+\end{table}<++>
+
+\subsection{Monte Carlo}
+
+\subsubsection{Brute force}
+
+\begin{table}
+    \centering
+    \caption{Brute force Monte Carlo integration results.}
+    \begin{tabular}{l l}
+        \hline
+        $N$ &   Results \\
+        \hline
+        $2^{22}$  & 25.8037959241 \\
+        $2^{24}$  & 24.7029013387 \\
+        $2^{29}$  & 24.7242439051 \\
+        $2^{30}$  & 24.85477499   \\ 
+        \hline
+    \end{tabular}
+    \label{tab:<+label+>}
+\end{table}<++>
+
+\section{Discussion and conclusion}
+
+\bibliography{referanser}
+\bibliographystyle{plain}
+
+
+\end{document}
+
