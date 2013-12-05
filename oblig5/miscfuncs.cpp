@@ -34,13 +34,16 @@ void RandNoGenGauss(double **randnos, double sigma, int dims, int N)
     cout << "Done initialising." << endl;
 
     // Calculate RVs using numbers from "generator" w/ "distribution".
+    //omp_set_dynamic(0);
+    //omp_set_num_threads(dims);
+    #pragma omp parallel
     for (int j=0; j < dims; j++) {
-        #pragma omp parallel for
+        #pragma omp for
         for (int i=0; i < N; i++) {
             randnos[j][i]    = gsl_ran_gaussian(r, sigma);
     //        x4[j][i]   = distribution(generator);
         }
-        cout << "Done w/ round " << j << endl;
+//        cout << "Done w/ round " << j << endl;
     }
 
 }
