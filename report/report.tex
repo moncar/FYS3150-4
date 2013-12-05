@@ -168,11 +168,24 @@ where choices of $x_i$ and $w_i$ for two other quadrature methods are:
     \item[Trapezoidal method] The function to be integrated is evaluated at $N$ points $x_i = a + ih$ with weights $w_i = h$ for $i=2,3,\dots,N-1$ whereas for $i=1,N$, $w_i = h/2$. The local error goes as $O(h^3)$ and the global error goes as $O(h^2)$. 
 \end{description} 
 
-In the case of Gaussian quadrature, the integration points $x_i$ are chosen as the locations of the zeros of an orthogonal polynomial of order $N$ which is orthogonal for a certain range $[p_i, p_f]$. 
+In the case of Gaussian quadrature, the integration points $x_i$ are chosen as the locations of the zeros of an orthogonal polynomial of order $N$ which is orthogonal for a certain range $[p_i, p_f]$.  
 
-The choice of orthogonal polynomial reflects both the integration range, and the form of the integral -- it is useful to consider a rewrite where the integrand $f(x) \to W(x) g(x)$ with $W(x)$ the \textit{weight function} that project the function $g(x)$ onto the chosen orthogonal basis of polynomials. 
+The choice of orthogonal polynomial reflects both the integration range, and the form of the integrand -- it is useful to consider a rewrite where the integrand $f(x) \to W(x) g(x)$ with $W(x)$ the \textit{weight function} that project the function $g(x)$ onto the chosen orthogonal basis of polynomials. 
 
-In the case where $W(x)$ can be singled out, the Gaussian quadrature consists of evaluating $g(x_i)$ at the zeros of the chosen orthogonal polynomial multiplied by the weights $w_i$, who also are determined by the polynomial.
+In the case where $W(x)$ can be singled out, the Gaussian quadrature consists of evaluating $g(x_i)$ at the zeros of the chosen orthogonal polynomial and multiplying with the weights $w_i$.
+
+To determine the weights $w_i$, a closer look on the polynomial representation of the initial integrand $f(x)$ is required. In Gaussian quadrature, a function of order $N$ can be represented by a polynomial $P_{2N-1}(x)$ of order $2N-1$. This can, in turn, be represented by the orthogonal polynomials $L_N(x)$, $P_{N-1}(x)$ and $Q_{N-1}(x)$,
+\begin{equation}
+    \int f(x) \diff x \approx \int P_{2N-1}(x) \diff x = \int L_N(x) P_{N-1}(x) + Q_{N-1}(x) \diff x
+    \label{eq:quadrature}
+\end{equation}
+where $L_N(x)$ is the chosen orthogonal polynomial giving the basis for the function space (for a given range of $x$). As $P_{N-1}(x)$ is orthogonal to $L_N(x)$ (the differences in order $N-1$ and $N$ lead to the product being zero. From eqs.~(5.10, 5.14) in \cite{MHJ:2013}), the integral can be written
+\[ \int f(x) \diff x \approx \int Q_{N-1}(x) \diff x. \]
+
+The numerical approximation gives that
+\[ \int Q_{N-1}(x) \diff x \approx \sum_i Q_{N-1}(x_i) w_i \]
+where the weights can be determined by
+
 
 \begin{table}
     \centering
