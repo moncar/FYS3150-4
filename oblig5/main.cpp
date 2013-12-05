@@ -18,10 +18,6 @@
 
 using namespace std;
 
-
-
-
-
 int main(int argc, char* argv[]) {
 
     int N;
@@ -86,11 +82,11 @@ int main(int argc, char* argv[]) {
             return statusMain4;
         case 5:
             cout << "entered 5" << endl;
-
+            
             int statusMain5;
             statusMain5 = mainMonteCarloVMC1(argc, argv, N);
-
-            return statusMain4;
+            
+            return statusMain5;
         default:
             cout << "Enter valid number..." << endl;
             return 1;
