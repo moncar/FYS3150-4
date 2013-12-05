@@ -179,13 +179,11 @@ To determine the weights $w_i$, a closer look on the polynomial representation o
     \int f(x) \diff x \approx \int P_{2N-1}(x) \diff x = \int L_N(x) P_{N-1}(x) + Q_{N-1}(x) \diff x
     \label{eq:quadrature}
 \end{equation}
-where $L_N(x)$ is the chosen orthogonal polynomial giving the basis for the function space (for a given range of $x$). As $P_{N-1}(x)$ is orthogonal to $L_N(x)$ (the differences in order $N-1$ and $N$ lead to the product being zero. From eqs.~(5.10, 5.14) in \cite{MHJ:2013}), the integral can be written
-\[ \int f(x) \diff x \approx \int Q_{N-1}(x) \diff x. \]
+where $L_N(x)$ is the chosen orthogonal polynomial giving the basis for the function space (for a given range of $x$). As $P_{N-1}(x)$ is orthogonal to $L_N(x)$ (the differences in order $N-1$ and $N$ lead to the product being zero, from eqs.~(5.10, 5.14) in \cite{MHJ:2013}), the integral can be written
+\[ \int f(x) \diff x \approx \int Q_{N-1}(x) \diff x = 2 \sum_{i=0}^{N-1} \left( L^{-1} \right)_{0i} P_{2N-1}(x_i) \]
+(from eqs.~(5.15, 5.16, 5,17) in \cite{MHJ:2013}) where the weigths are determined as $w_i = 2 \left( L^{-1} \right)_{0i}$.
 
-The numerical approximation gives that
-\[ \int Q_{N-1}(x) \diff x \approx \sum_i Q_{N-1}(x_i) w_i \]
-where the weights can be determined by
-
+Table (\ref{tab:polys}) summarises possible weight functions, orthogonality ranges and orthogonal polynomials (from \cite{MHJ:2013}).
 
 \begin{table}
     \centering
@@ -203,7 +201,8 @@ where the weights can be determined by
     \label{tab:polys}
 \end{table}
 
-Table (\ref{tab:polys}) summarises possible weight functions, orthogonality ranges and orthogonal polynomials (from \cite{MHJ:2013}).
+\subsection{Monte Carlo methods}
+A 
 
 \section{Results}
 \subsection{Gauss-Legendre quadrature}
