@@ -18,8 +18,8 @@ int mainMonteCarloBruteForce(int argc, char* argv[], int N) {
 
     // Brute-force Monte Carlo
 
-    // init random seed 
-    //srand(time(0));
+    // Timer
+    double t = omp_get_wtime();     // get wall time
     
     // Limits:
     double limit = 5.0;
@@ -82,14 +82,18 @@ int mainMonteCarloBruteForce(int argc, char* argv[], int N) {
     variance        = sigmasq - integral*integral;
     variance        = variance / N ; // ???
 
-    // Scale
-    integral *= jacobiDet;
-    double stddev = sqrt(variance) * jacobiDet;
+    // Scaling
+    integral        = integral * jacobiDet;
+    double stddev   = sqrt(variance) * jacobiDet;
 
     printf("Integral sum: %.12g , with N=%d \n", integral, N);
-    cout << "\t" << sigmasq/N << " x^2: " << integral*integral/jacobiDet << endl;
-    printf("\tVariance: %.12g,\n\tstd.dev: %.12g\n", variance, stddev);
+    printf("\tStd.dev: %.12g\n", stddev);
+    
+    // Time spent?
+    t = omp_get_wtime() - t;
+    cout << "Elapsed time: " << t << "s" << endl;
 
+    // Save if argument says so
     if (argc > 3) { 
         outputFile2(N, 1, xxx[1], fx, &argv[3]);
     }
