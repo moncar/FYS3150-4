@@ -63,9 +63,9 @@ linestyles = ['k-', 'y-', 'b-', 'kx', 'r-', 'y-', 'c-', 'b-', 'g-']
 linestylesX = ['kx', 'yx', 'bx', 'kx', 'rx', 'yx', 'cx', 'bx', 'gx']
 
 for i in xrange(1, nK+1):
-#    ax1.plot(data1[0,:], linestylesX[i])
+    ax1.plot(data1[0,:], linestylesX[i])
 #    ax1.hist(data1[0,:])
-    ax1.plot(data1[0,:], data1[1,:], linestyles[i+1])
+#    ax1.plot(data1[0,:], data1[1,:], linestyles[i+1])
 #    ax1labels.append('t = %.3g' % (i*1./(nK-1)))
     #ax1.plot(data1[2*i+1,::slice], data1[2*i+2,::slice], linestyles[i])
     print("Mean: %g" % (mean(data1[i,:]),))
