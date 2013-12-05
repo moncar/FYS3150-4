@@ -20,13 +20,15 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
     //          save random nos as locations,
     //          iteration++
     //  - NO: keep old ones, try new sample, iteration = iteration
+    
+    // Timer
+    double t = omp_get_wtime();     // get wall time
+
 
     // Initialise
     double** xVMC1 = new double*[N];   // holding: random numbers
     double*  fxVMC1= new double[2*N];    // holding: function values
     double*  ergLoc= new double[N];    // holding: local energy values
-    clock_t t;                      // timer
-    t = clock();
 
     // Set std.dev for Gaussian function
     double sigma = 1./sqrt(2);
@@ -151,10 +153,6 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
         cout << "\tStd.dev: " << stddev[a] << endl;
     }
 
-
-    // Time spent?
-    t = clock() - t;
-    cout << "Elapsed time: " << (float)t/CLOCKS_PER_SEC << "s" << endl;
     
     double* xVMCvals = new double[N];
     for (int i=0; i<N; i++) { 
