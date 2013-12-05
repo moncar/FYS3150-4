@@ -19,8 +19,8 @@ int mainMonteCarloImportanceSampling(int argc, char* argv[], int N) {
     // Initialise
     double** x4 = new double*[6];   // holding: random numbers
     double*  fx4= new double[N];    // holding: function values
-    clock_t t;                      // timer
-    t = clock();
+    // Timer
+    double t = omp_get_wtime();     // get wall time
 
     // Set std.dev for Gaussian function
     double sigma = 1./sqrt(2);
@@ -70,8 +70,8 @@ int mainMonteCarloImportanceSampling(int argc, char* argv[], int N) {
     
 
     // Time spent?
-    t = clock() - t;
-    cout << "Elapsed time: " << (float)t/CLOCKS_PER_SEC << "s" << endl;
+    t = omp_get_wtime() - t;
+    cout << "Elapsed time: " << t << "s" << endl;
 
     // Save if argument says so
     if (argc > 3) { 
