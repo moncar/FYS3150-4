@@ -34,6 +34,10 @@ int mainMonteCarloImportanceSampling(int argc, char* argv[], int N);
 int mainMonteCarloVMC1(int argc, char* argv[], int N);
 #endif
 
+#ifndef mainTESTSUITE_H
+#define mainTESTSUITE_H
+int mainTESTSUITE(int argc, char* argv[], int N);
+#endif
 
 
 // wavefuncs.cpp
@@ -58,6 +62,11 @@ double wavefuncsqT1(double* x, double alpha);
 
 #endif
 
+#ifndef wavefuncT1_H
+#define wavefuncT1_H
+double wavefuncT1(double* x, double alpha);
+#endif
+
 // Misc functions
 
 #ifndef RandNoGenGauss_H
@@ -72,7 +81,23 @@ double LocalEnergy1(double x1, double y1, double z1 \
                 , double alpha, int N);
 #endif
 
+#ifndef LocalEnergyNumerical_H
+#define LocalEnergyNumerical_H
+void LocalEnergyNumerical(double** x \
+                        ,   double (*wvfunc)(double*, double) \
+                        ,   double (*potential)(double*) \
+                        ,   double xstep \
+                        ,   int N   \
+                        ,   double alpha \ 
+                        ,   double* energies );
+#endif
 
+#ifndef potential_H
+#define potential_H
+double potential(double* x);
+#endif
+
+    
 // External functions
 #ifndef GaussHermite_H
 #define GaussHermite_H
