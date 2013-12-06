@@ -69,10 +69,121 @@ double LocalEnergy1(double x1, double y1, double z1 \
 
         //cout << r1sq+r2sq << " \t" << 1./r1r2 << endl;
         // Calculate local energy, store value in outputarray
-        return 0.5 * alfalfa * (2. - alfalfa * (r1sq + r2sq)) \
-              +0.5 * (r1sq + r2sq) + 1./r1r2;
+        return 1./r1r2;
+//        return alfalfa * ( alfalfa * (r1sq + r2sq) - 6) \
+//                + 0.5 * (r1sq - r2sq)   \
+//                + 1./r1r2;
+//        
+        
+//        return 0.5 * alfalfa * (2. - alfalfa * (r1sq + r2sq)) \
+//              +0.5 * (r1sq + r2sq) + 1./r1r2;
     } 
 
 }
     
+double potential(double* x)
+{
+    // Returns potential term for wave functions
+    // Input:
+    //  - Array of x-positions
+    // Output:
+    //  - Double: potential
+
+    double r1sq;
+    double r2sq;
+    double r1r2; 
+    
+    r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
+    r1r2 = sqrt(  (x[0]-x[3])*(x[0]-x[3]) \
+                + (x[1]-x[4])*(x[1]-x[4]) \
+                + (x[2]-x[5])*(x[2]-x[5]));
+
+    return 0.5 * (r1sq + r2sq) + 1./r1r2;
+}
+
+
+void LocalEnergyNumerical(double** x \
+                        ,   double (*wvfunc)(double*, double) \
+                        ,   double (*potential)(double*) \
+                        ,   double xstep \
+                        ,   int N   \
+                        ,   double alpha \
+                        ,   double* energies )
+{
+    // Calculates the local energy using the definition of the Hamiltonian
+    // operator:
+    //      H = -0.5 DEL^2   +   V
+    //
+    // The local energy is given as
+    //      Eloc    =   1./psi H psi     =   -0.5/psi * DEL^2 psi + V
+
+    double kinenergy = 0.0;
+    double potenergy = 0.0;
+    double totenergy = 0.0;
+    double totenergysq=0.0;
+
+    double wfunc_forw= 0.0;
+    double wfunc_back= 0.0;
+    double wfunc_pres= 0.0;
+
+    // To hold copy of positions, these will be garbled
+    double** xforw = new double*[N];
+    double** xback = new double*[N];
+
+    for (int i=0; i<N; i++) {
+        xforw[i] = new double[6];
+        xback[i] = new double[6];
+        for (int j=0; j<6; j++) {
+            xforw[i][j] = x[i][j];
+            xback[i][j] = x[i][j];
+        }
+    }
+    
+
+    // Kinetic term
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<6; j++) {
+            xforw[i][j] = x[i][j] + xstep;
+            xback[i][j] = x[i][j] - xstep;
+
+            // Evaluate wavefunc:
+            wfunc_back = (*wvfunc)(xback[i], alpha);
+            wfunc_forw = (*wvfunc)(xforw[i], alpha);
+            wfunc_pres = (*wvfunc)(x[i], alpha);
+
+            // Differentiate:
+            kinenergy = 0.5*(wfunc_forw -2*wfunc_pres +wfunc_back);
+
+            // Local energy: 1/psi * H psi
+            kinenergy /= wfunc_pres*xstep*xstep;
+
+            // Reset, to be reused
+            xforw[i][j] = x[i][j];
+            xback[i][j] = x[i][j];
+        }
+        potenergy = potential(x[i]);
+        totenergy += (-kinenergy + potenergy);
+        totenergysq+=pow((-kinenergy+potenergy), 2);
+    }
+
+    // Calculate energy average and squared
+    totenergy /= N;
+    totenergysq /= N;
+
+    // Housekeeping
+    delete [] xforw;
+    delete [] xback;
+
+    energies[0] = totenergy;
+    energies[1] = totenergysq;
+
+}
+
+
+
+
+
+
+
 
