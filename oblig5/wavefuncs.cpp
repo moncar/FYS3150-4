@@ -46,3 +46,13 @@ double wavefuncsqT1(double* x, double alpha)
 
     return exp(- alpha*alpha * (r1sq + r2sq ));
 }
+
+double wavefuncT1(double* x, double alpha) 
+{
+    
+    double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
+    //double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
+
+    return exp(- alpha*alpha * (r1sq + r2sq )/2.0);
+}
