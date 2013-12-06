@@ -87,6 +87,13 @@ int main(int argc, char* argv[]) {
             statusMain5 = mainMonteCarloVMC1(argc, argv, N);
             
             return statusMain5;
+        case 9:
+            cout << "entered 9" << endl;
+            
+            int statusMain9;
+            statusMain9 = mainTESTSUITE(argc, argv, N);
+            
+            return statusMain9;
         default:
             cout << "Enter valid number..." << endl;
             return 1;
