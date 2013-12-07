@@ -104,11 +104,12 @@ double potential(double* x)
 
 
 void LocalEnergyNumerical(double** x \
-                        ,   double (*wvfunc)(double*, double) \
+                        ,   double (*wvfunc)(double*, double, double) \
                         ,   double (*potential)(double*) \
                         ,   double xstep \
                         ,   int N   \
                         ,   double alpha \
+                        ,   double beta \
                         ,   double* energies )
 {
     // Calculates the local energy using the definition of the Hamiltonian
@@ -148,9 +149,9 @@ void LocalEnergyNumerical(double** x \
             xback[i][j] = x[i][j] - xstep;
 
             // Evaluate wavefunc:
-            wfunc_back = (*wvfunc)(xback[i], alpha);
-            wfunc_forw = (*wvfunc)(xforw[i], alpha);
-            wfunc_pres = (*wvfunc)(x[i], alpha);
+            wfunc_back = (*wvfunc)(xback[i], alpha, beta);
+            wfunc_forw = (*wvfunc)(xforw[i], alpha, beta);
+            wfunc_pres = (*wvfunc)(x[i], alpha, beta);
 
             // Differentiate:
             kinenergy = 0.5*(wfunc_forw -2*wfunc_pres +wfunc_back);
