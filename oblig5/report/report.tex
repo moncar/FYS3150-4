@@ -81,7 +81,7 @@
 \section{Introduction}
 
 \subsection{Numerical integration}
-To calculate the expectation value of an observable $\mathbf{O}(x,p)$\footnote{Notation is borrowed from \cite{Griffiths:2005} and \cite{MHJ:2013}.}, where $x$ denotes position and $p$ denotes momentum,
+The expectation value of an observable $\mathbf{O}(x,p)$\footnote{Notation is borrowed from \cite{Griffiths:2005} and \cite{MHJ:2013}.}, where $x$ denotes position and $p$ denotes momentum, can be found as an inner product,
 \begin{equation}
     \langle O \rangle   =   \langle \psi | \hat{O} \psi \rangle
     \label{eq:observable}
@@ -209,10 +209,10 @@ A
 
 \begin{table}
     \centering
-    \caption{Gauss-Legendre quadrature integration results. Note that $N=128$ required $128^6 \approx 4400$ billion integration points and required more than three hours of computations on the 64-core computing node \texttt{nekkar.uio.no}, fully parallelised using OpenMP.}
-    \begin{tabular}{l l}
+    \caption{Gauss-Legendre quadrature results for the correlation energy between two interacting electrons in a harmonic oscillator potential well. Note that $N=128$ required $128^6 \approx 4400$ billion integration points and required more than three hours of computations on the 64-core computing node \texttt{nekkar.uio.no}, fully parallelised using OpenMP.}
+    \begin{tabular}{l c}
         \hline
-        $N$ &   Results \\
+        $N$ & $I = \langle 1/|\mathbf{r}_1 - \mathbf{r}_2| \rangle$ \\
         \hline
         8   &   5.74062 \\
         16  &   19.9532 \\
@@ -226,10 +226,10 @@ A
 
 \begin{table}
     \centering
-    \caption{Gauss-Hermite quadrature integration results.}
-    \begin{tabular}{l l}
+    \caption{Gauss-Hermite quadrature results for the correlation energy between two interacting electrons in a harmonic oscillator potential well.}
+    \begin{tabular}{l c}
         \hline
-        $N$ &   Results \\
+        $N$ &   $I = \langle 1/|\mathbf{r}_1 - \mathbf{r}_2| \rangle$ \\
         \hline
         8   &   21.5379 \\
         16  &   23.0806 \\
@@ -273,6 +273,21 @@ A
     \end{tabular}
     \label{tab:res_importanceMC}
 \end{table}
+
+\subsection{Variational Monte Carlo}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/fig1_T1_E.pdf}
+    \caption{The expectation value for the energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the wave function $\psi_{T1}$. The solid blue line represents $N=2^{17}$ Monte Carlo cycles, and the dashed red line represents $N=2^{24}$ Monte Carlo cycles. See fig.~(\ref{fig:2_t1_17_sigma}) for a plot of the corresponding standard deviations. The minimum for the expectation value is $\langle E \rangle = 2.2307$ at $\alpha = -0.96$ for $N=2^{24}$.}
+    \label{fig:2_t1_17_E}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/fig2_T1_sigma.pdf}
+    \caption{Standard deviation for the local energy plotted against $\alpha$, for the case where the trial wave function is $\psi_{T1}$ with $N=2^{17}, 2^{24}$ Monte Carlo cycles. }
+    \label{fig:2_t1_17_sigma}
+\end{figure}<++>
 
 \section{Discussion and conclusion}
 
