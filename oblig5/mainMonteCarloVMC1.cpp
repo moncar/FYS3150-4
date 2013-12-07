@@ -13,10 +13,15 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
     // Timer
     double t = omp_get_wtime();     // get wall time
 
+    double (&wavefunc)(double*, double, double)  = wavefuncT1;
+    double (&wavefuncSq)(double*, double, double)= wavefuncT1sq;
+    //double (&wavefunc)(double*, double, double)  = wavefuncT2;
+    //double (&wavefuncSq)(double*, double, double)= wavefuncT2sq;
 
     // Variational MC:
     double alph0    = -1.2;
-    double alphStep =  0.02;
+    double beta0    = 0.0001;
+    double alphStep =  0.015;
     int variations  = 40;
 
     // Variational matrix:
@@ -40,8 +45,8 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
     r = gsl_rng_alloc(T);   // random number generator
 
     // VARIATIONAL MONTE CARLO: CHANGE ALPHA
-//#pragma omp parallel for private(psisq_initial,randcord,n,randno,randno2,randno3,xtmp,x,psisq,psisq_initial,ratio)
-#pragma omp parallel for
+    cout << "Entering parallell section..." << endl;
+    #pragma omp parallel for
     for (int a=0; a<variations; a++) {
 
         // Initialisations
@@ -65,7 +70,7 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
         }
 
         // Calculate wave func for initial positoin
-        psisq_initial = wavefuncsqT1(x[0], alphas[a]);
+        psisq_initial = wavefuncSq(x[0], alphas[a], beta0);
 
         // Counter
         int n = 1;
@@ -89,7 +94,7 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
             
             // Change random coordinate and calc wave func
             xtmp[randcord] += randno2*xstep;
-            psisq = wavefuncsqT1(xtmp, alphas[a]);
+            psisq = wavefuncSq(xtmp, alphas[a], beta0);
 
             // Calc wavefunc ratio
             ratio = psisq / psisq_initial;
@@ -108,11 +113,12 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
         // Calculate local energy for sample
         double locergs[2];
         LocalEnergyNumerical(x \
-                            ,&wavefuncT1 \
+                            ,&wavefunc \
                             ,&potential \
                             ,xstep \
                             ,N \
                             ,alphas[a] \
+                            ,beta0 \
                             ,locergs);
 
         energies[a] = locergs[0];
