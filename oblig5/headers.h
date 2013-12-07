@@ -56,16 +56,28 @@ double wavefunc_red(double x1, double y1, double z1, \
 
 #endif
 
-#ifndef wavefuncsqT1_H
-#define wavefuncsqT1_H
-double wavefuncsqT1(double* x, double alpha);
+#ifndef wavefuncT1sq_H
+#define wavefuncT1sq_H
+double wavefuncT1sq(double* x, double alpha, double);
 
 #endif
 
 #ifndef wavefuncT1_H
 #define wavefuncT1_H
-double wavefuncT1(double* x, double alpha);
+double wavefuncT1(double* x, double alpha, double);
 #endif
+
+#ifndef wavefuncT2sq_H
+#define wavefuncT2sq_H
+double wavefuncT2sq(double* x, double alpha, double beta);
+
+#endif
+
+#ifndef wavefuncT2_H
+#define wavefuncT2_H
+double wavefuncT2(double* x, double alpha, double beta);
+#endif
+
 
 // Misc functions
 
@@ -84,11 +96,12 @@ double LocalEnergy1(double x1, double y1, double z1 \
 #ifndef LocalEnergyNumerical_H
 #define LocalEnergyNumerical_H
 void LocalEnergyNumerical(double** x \
-                        ,   double (*wvfunc)(double*, double) \
+                        ,   double (*wvfunc)(double*, double, double) \
                         ,   double (*potential)(double*) \
                         ,   double xstep \
                         ,   int N   \
                         ,   double alpha \ 
+                        ,   double beta \
                         ,   double* energies );
 #endif
 
