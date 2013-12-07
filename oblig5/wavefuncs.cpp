@@ -37,22 +37,42 @@ double wavefunc_red(double x1, double y1, double z1, \
     }
 }
 
-double wavefuncsqT1(double* x, double alpha) 
+
+double wavefuncT1(double* x, double alpha, double) 
 {
     
     double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
     double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
-    //double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
+
+    return exp(- alpha*alpha * (r1sq + r2sq )/2.0);
+}
+
+double wavefuncT1sq(double* x, double alpha, double) 
+{
+    
+    double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
 
     return exp(- alpha*alpha * (r1sq + r2sq ));
 }
 
-double wavefuncT1(double* x, double alpha) 
+double wavefuncT2(double* x, double alpha, double beta)
 {
-    
     double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
     double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
-    //double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
+    double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
 
-    return exp(- alpha*alpha * (r1sq + r2sq )/2.0);
+    return exp(- alpha*alpha * (r1sq + r2sq )/2.0) \
+          *exp( r1r2/(2.0 * (1.0 + beta* r1r2) ) );
 }
+
+double wavefuncT2sq(double* x, double alpha, double beta)
+{
+    double r1sq = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+    double r2sq = x[3]*x[3] + x[4]*x[4] + x[5]*x[5];
+    double r1r2 = sqrt((x[0]-x[3])*(x[0]-x[3]) + (x[1]-x[4])*(x[1]-x[4]) + (x[2]-x[5])*(x[2]-x[5]));
+
+    return exp(- alpha*alpha * (r1sq + r2sq )) \
+          *exp( r1r2/(1.0 + beta* r1r2) );
+}
+
