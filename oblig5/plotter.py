@@ -5,6 +5,8 @@ from numpy import loadtxt, zeros, mean, where
 import matplotlib.pylab as plt
 import sys
 
+#from xkcdify import *
+
 # Data from files
 try:
     filename1 = sys.argv[1]
@@ -80,6 +82,7 @@ for i in xrange(1, nK+1):
 
 
 ax1.set_xlabel(r'$\alpha$', fontsize=18)
+#ax1.set_xlabel(r'$\beta$', fontsize=18)
 ax1.set_ylabel(r'$\langle E \rangle$ ', fontsize=18)
 #ax1.set_ylabel(r'$\sigma = \sqrt{\sigma^2/N}$ ', fontsize=18)
 #axE.set_xlabel(r'$x$-position ', fontsize=18)
@@ -104,9 +107,22 @@ ax1.set_ylabel(r'$\langle E \rangle$ ', fontsize=18)
 #        ('Rel. error, N=%g points' % (N3,))] )
 
 box = ax1.get_position()
-ax1.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax1.set_position([box.x0, box.y0, box.width * 0.80, box.height])
 ax1.legend(ax1labels, loc='center left', bbox_to_anchor=(1, 0.5))
 plt.setp(plt.gca().get_legend().get_texts(), fontsize='18')
 #axE.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 #axE.legend(ax1labels, loc='center left', bbox_to_anchor=(1, 0.5))
+
+
+# XKCDIFY
+
+#fig.suptitle('<E>', fontsize=40)
+#ax1.set_xlabel('alpha')
+#XKCDify(ax1, #xaxis_loc=0.0, yaxis_loc=1.0,
+#             xaxis_arrow='+-', yaxis_arrow='+-',
+#             expand_axes=True)
+
+
+
+
 plt.show()
