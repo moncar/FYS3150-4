@@ -135,11 +135,14 @@ void LocalEnergyNumerical(double** x \
     for (int i=0; i<N; i++) {
         xforw[i] = new double[6];
         xback[i] = new double[6];
+    }
+    for (int i=0; i<N; i++) {
         for (int j=0; j<6; j++) {
             xforw[i][j] = x[i][j];
             xback[i][j] = x[i][j];
         }
     }
+
     
 
     // Kinetic term
