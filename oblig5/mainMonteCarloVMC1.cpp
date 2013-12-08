@@ -13,27 +13,36 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
     // Timer
     double t = omp_get_wtime();     // get wall time
 
-    double (&wavefunc)(double*, double, double)  = wavefuncT1;
-    double (&wavefuncSq)(double*, double, double)= wavefuncT1sq;
-    //double (&wavefunc)(double*, double, double)  = wavefuncT2;
-    //double (&wavefuncSq)(double*, double, double)= wavefuncT2sq;
+    //double (&wavefunc)(double*, double, double)  = wavefuncT1;
+    //double (&wavefuncSq)(double*, double, double)= wavefuncT1sq;
+    double (&wavefunc)(double*, double, double)  = wavefuncT2;
+    double (&wavefuncSq)(double*, double, double)= wavefuncT2sq;
 
     // Variational MC:
-    double alph0    = -1.2;
-    double beta0    = 0.0001;
-    double alphStep =  0.015;
-    int variations  = 40;
+    double alph0    =-1.2;
+    double beta0    = 0.00;
+    double alphStep = 0.015;
+    double betaStep = 0.015;
+    int variations  = 48;
 
     // Variational matrix:
     //  - Alphas
     //  - Avg energies
     //  - Std.deviations
     double * alphas     = new double[variations];
+    double * betas      = new double[variations];
     double * energies   = new double[variations];
+    double **locergs    = new double*[variations];
     double * stddevs    = new double[variations];
 
     for (int a=0; a<variations; a++) {
         alphas[a] = alph0 + a*alphStep;
+    }
+    for (int b=0; b<variations; b++) {
+        betas[b] = beta0 + b*betaStep;
+    }
+    for (int l=0; l<variations; l++) {
+        locergs[l] = new double[2];
     }
 
     // Calculate random number
@@ -44,11 +53,23 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
     T = gsl_rng_taus;       // generator function
     r = gsl_rng_alloc(T);   // random number generator
 
-    // VARIATIONAL MONTE CARLO: CHANGE ALPHA
+    // VARIATIONAL MONTE CARLO: VARIATE ALPHA & BETA
     cout << "Entering parallell section..." << endl;
+    // In case: variate: ALPHA, fix BETA:
+//    int aplus=1;  int a = 0;
+//    int bplus=0;  int b = 0;
+//    betas[b] = beta0;
+//    #pragma omp parallel for
+//    for (int varp=0; varp<variations; varp++) {
+    
+    // In case: variate: BETA, fix ALPHA:
+    int aplus=0;    int a = 0;
+    int bplus=1;    int b = 0;
+    alphas[a] = -0.96;
     #pragma omp parallel for
-    for (int a=0; a<variations; a++) {
+    for (int varp=0; varp<variations; varp++) {
 
+        cout << "init..." << endl;
         // Initialisations
         double psisq, psisq_initial;
         int randcord;
@@ -70,12 +91,15 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
         }
 
         // Calculate wave func for initial positoin
-        psisq_initial = wavefuncSq(x[0], alphas[a], beta0);
+        psisq_initial = wavefuncSq(x[0], alphas[a], betas[b]);
 
         // Counter
         int n = 1;
 
         // Loop until n = N-1
+        cout << "VMC..." << endl;
+        //#pragma omp for private(randno, randno2, randno3, xtmp)
+        //for (int n=1; n<N; n++) {
         while (n<N) {
             // Pick random coordinate [0,5] and calc ratio
             randcord = (int)floor(6*gsl_rng_uniform(r));
@@ -94,7 +118,7 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
             
             // Change random coordinate and calc wave func
             xtmp[randcord] += randno2*xstep;
-            psisq = wavefuncSq(xtmp, alphas[a], beta0);
+            psisq = wavefuncSq(xtmp, alphas[a], betas[b]);
 
             // Calc wavefunc ratio
             ratio = psisq / psisq_initial;
@@ -107,28 +131,43 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
                 }
                 // Increment counter
                 n++;
-            }
+            } 
+           // else {
+           //     // New loc not accepted
+           //     for (int j=0; j<6; j++) {
+           //         x[n][j] = x[n-1][j];
+           //     }
+           // }
         }
 
         // Calculate local energy for sample
-        double locergs[2];
+        cout << "Local energy...";
         LocalEnergyNumerical(x \
                             ,&wavefunc \
                             ,&potential \
                             ,xstep \
                             ,N \
                             ,alphas[a] \
-                            ,beta0 \
-                            ,locergs);
+                            ,betas[b] \
+                            ,locergs[varp]);
+        cout << " \t Done..." << endl;
 
-        energies[a] = locergs[0];
+        energies[varp] = locergs[varp][0];
         // Calculate std.deviation
-        stddevs[a] = sqrt(1./N * (locergs[1] - locergs[0]*locergs[0]));
+        stddevs[varp] = sqrt(1./N * (locergs[varp][1] - locergs[varp][0]*locergs[varp][0]));
 
 
         cout << "Alpha " << alphas[a] << endl;
-        cout << "Energy " << locergs[0] << endl;
-        cout << "energ sq " << locergs[1] << endl;
+        cout << "Beta  " << betas[b]  << endl;
+        cout << "Energy " << locergs[varp][0] << endl;
+        cout << "energ sq " << locergs[varp][1] << endl;
+
+        a += aplus;
+        b += bplus;
+        
+        // Housekeeping
+        delete [] x;
+        delete [] xtmp;
 
     }
 
@@ -150,13 +189,20 @@ int mainMonteCarloVMC1(int argc, char* argv[], int N) {
     }
 
     if (argc > 3) { 
-        outputFile2(variations, 2, alphas, yvals, &argv[3]);        
+        outputFile2(variations, 2, betas, yvals, &argv[3]);        
     }
 
     // Time spent?
     t = omp_get_wtime() - t;
     cout << "Elapsed time: " << t << "s" << endl;
 
+    // Housekeeping
+    delete [] alphas;
+    delete [] betas;
+    delete [] energies; 
+    delete [] stddevs;
+    delete [] yvals;
+    delete [] locergs;
 
 
     // Variational part: using test wave function PSI_T1
