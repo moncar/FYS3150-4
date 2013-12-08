@@ -74,6 +74,13 @@
 
 \onecolumn
 \maketitle{}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/fig0_E.pdf}
+%    \caption{<+caption text+>}
+%    \label{fig:0}
+\end{figure}
+\newpage
 
 \begin{abstract}
 \end{abstract}
@@ -278,15 +285,36 @@ A
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\columnwidth]{fig/fig1_T1_E.pdf}
-    \caption{The expectation value for the energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the wave function $\psi_{T1}$. The solid blue line represents $N=2^{17}$ Monte Carlo cycles, and the dashed red line represents $N=2^{24}$ Monte Carlo cycles. See fig.~(\ref{fig:2_t1_17_sigma}) for a plot of the corresponding standard deviations. The minimum for the expectation value is $\langle E \rangle = 2.2307$ at $\alpha = -0.96$ for $N=2^{24}$.}
-    \label{fig:2_t1_17_E}
+    \caption{The expectation value for the energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the wave function $\psi_{T1}$. The solid blue line represents $N=2^{17}$ Monte Carlo cycles, and the dashed red line represents $N=2^{24}$ Monte Carlo cycles. See fig.~(\ref{fig:2_T1_sigma}) for a plot of the corresponding standard deviations. The minimum for the expectation value is $\langle E \rangle = 2.2307$ at $\alpha = -0.96$ for $N=2^{24}$. The results are symmetric around the $y$-axis (see fig.~(\ref{fig:XX_T1_E_plus})), with a minimum $\langle E \rangle = 2.2314$ at $\alpha = +0.96$ (for $N=2^{24}$).}
+    \label{fig:2_T1_E}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\columnwidth]{fig/fig2_T1_sigma.pdf}
-    \caption{Standard deviation for the local energy plotted against $\alpha$, for the case where the trial wave function is $\psi_{T1}$ with $N=2^{17}, 2^{24}$ Monte Carlo cycles. }
-    \label{fig:2_t1_17_sigma}
+    \caption{Standard deviation for the local energy plotted against $\alpha$, for the case where the trial wave function is $\psi_{T1}$ with $N=2^{17}, 2^{24}$ Monte Carlo cycles. For the symmetric case at $\alpha = +0.96$, the standard deviations are of the same magnitudes. }
+    \label{fig:2_T1_sigma}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/figXX_T1_E_plus.pdf}
+    \caption{The expectation value for the energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the trial wave function $\psi_{T1}$ with $N=2^{17}, 2^{24}$ Monte Carlo samplings. The minimum for $N=2^{24}$ is $\langle E \rangle = 2.2314$ at $\alpha=+0.96$. See fig.~(\ref{fig:2_T1_E}) for a plot showing the negative symmetric case with standard deviations in fig.~(\ref{fig:2_T1_sigma}). This figure was used to produce the cover illustration. }
+    \label{fig:XX_T1_E_plus}
+\end{figure}<++>
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/fig5_T2_E.pdf}
+    \caption{Expectation value of energy for trial wave function $\psi_{T2}$ with $\alpha = -0.96$ and variations in the parameter $\beta$ for the cases with $N=2^{17}, 2^{19}$ Monte Carlo samplings. Note the periodicity in the data, and that the extrema are not aligned for higher $\beta$. See fig.~(\ref{fig:6_T2_sigma}) for the corresponding standard deviations.}
+    \label{fig:5_T2_E}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/fig6_T2_sigma.pdf}
+    \caption{Standard deviations for the local energies used to produce the expectation value of the energy for $\psi_{T2}$ shown in fig.~(\ref{fig:4_T2_E}), where $N=2^{17}, 2^{20}$. Compared to the standard deviations shown in fig.~(\ref{fig:2_T1_sigma}), the magnitude of the standard deviations for the case $N=2^{20}$ is smaller than for $N=2^{17}$, and larger than for $N=2^{24}$. }
+    \label{fig:6_T2_sigma}
 \end{figure}<++>
 
 \section{Discussion and conclusion}
