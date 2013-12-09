@@ -76,21 +76,38 @@
 \maketitle{}
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\columnwidth]{fig/fig0_E.pdf}
+    \includegraphics[width=0.50\columnwidth]{fig/fig0_E.pdf}
 %    \caption{<+caption text+>}
 %    \label{fig:0}
 \end{figure}
-\newpage
 
 \begin{abstract}
+    This project examines an ensemble of numerical methods that can be used to calculate the expectation value of an observable. The methods discussed are \textit{(i)} Gaussian quadrature, with applications of orthogonal Legendre and Hermite polynomials to span the basis for the function spaces onto which the integrand are projected to calculate the expectation value of the correlation energy for two electrons in a harmonic oscillator potential well, \textit{(ii)}  Monte Carlo methods, with applications of brute force and importance sampling to solve the same problem as solved using Gaussian quadrature, and \textit{(iii)} the variational Monte Carlo method using the Metropolis algorithm to procure the distribution from which wave functions are sampled.
+
+    The expectation value of the correlation energy between two electrons in a harmonic oscillator well is calculated to be $I=24.6569$ using Gauss-Legendre quadrature, $I=24.5251$ using Gauss-Hermite quadrature, $I=24.82383$ using brute force Monte Carlo, $I=24.73405$ using importance sampling Monte Carlo.
+
+    The expectation value of the local energy for a quantum mechanical system resembling the Helium atom is found to be $\langle E \rangle = 2.0699$.
+
+    Periodicity in the variational results suggest further debugging is required.
 \end{abstract}
 
+\newpage
+{}\footnote{Cover page illustration: expectation value of local energy calculated for trial wave function $\psi_{T1}$ (ref.~eq.~(\ref{eq:wavefuncT1})) using variational Monte Carlo methods, varying $\alpha$. See fig.~(\ref{fig:XX_T1_E_plus}) for the same plot with ticks on the axes. }
+\newpage
 \section{Introduction}
+
+The aim of this project is to use numerical integration methods as Gaussian quadrature and Monte Carlo sampling as well as a variational Monte Carlo approach to calculate the expectation value of a quantum mechanical observable.
+
+The choice of method usually reflects the compromise between the desired accuracy, numerical complexity and available time (both for computations and for solution designing). The global error can serve as an indicator on the numerical complexity. Whereas numerically simple methods, as the trapezoidal rule or the midpoint method has global errors that goes as $O(h^2) \approx \left( 1/N \right)^2 = N^{-2}$, the standard deviation of a series of $N$ measurements goes as $1/\sqrt{N}$. For a higher order integral, of dimension $k$, the given quadrature methods would require $N = (L/h)^k$ integration points, making the global truncation error go as $O(h^2) \propto N^{-2/k}$. For $k \geq 4$, the Monte Carlo methods will be superior in terms of precision. 
+
+In this project, a quantum mechanical system of two electrons, who are free to move in their distinct 3D Cartesian space, will be analysed, yielding six dimensional integrals.
+
+Another aim of this project is to develop code that can run on several cores simultaneously.
 
 \subsection{Numerical integration}
 The expectation value of an observable $\mathbf{O}(x,p)$\footnote{Notation is borrowed from \cite{Griffiths:2005} and \cite{MHJ:2013}.}, where $x$ denotes position and $p$ denotes momentum, can be found as an inner product,
 \begin{equation}
-    \langle O \rangle   =   \langle \psi | \hat{O} \psi \rangle
+    \langle O \rangle   =   \langle \psi | \hat{O} | \psi \rangle
     \label{eq:observable}
 \end{equation}
 where the transition $\mathbf{O} \to \hat{\mathbf{O}}$ denotes that the observable can be found using the corresponding operator on the wave function. Using integral notation, the above expression becomes
@@ -128,6 +145,8 @@ The standard deviation and variance of the determinate states of an observable $
 \end{align*}
 where it was used that the eigenvalue for the operator $\hat{\mathbf{O}}$ on $\psi$ is $q$, a number which can be moved outside the inner product, and that the wave function is normalised, $\langle \psi | \psi \rangle = 1$.
 
+In this project, natural units are applied.
+
 \subsection{Quantum mechanical cases}
 The quantum mechanical cases of this project will be two electrons interacting in a harmonic oscillator well, with wave function
 \begin{equation}
@@ -154,14 +173,14 @@ This project will use different methods to determine observables defined in eq.~
 This project will also apply variational Monte Carlo techniques for both quantum mechanical cases, where the factors $\alpha$ and $\beta$ are varied and the Metropolis algorithm is applied to create the distribution. 
 
 \section{Methods}
-Gaussian quadrature, brute force Monte Carlo and importance sampling Monte Carlo are applied to find the expectation value of the correlation energy between two electrons, given as
+Gaussian quadrature, brute force Monte Carlo and importance sampling Monte Carlo are applied to find the expectation value of the correlation energy between two electrons, each in three dimensional Cartesian space, given as
 \begin{align}
     \langle \frac{1}{| \mathbf{r}_1 - \mathbf{r}_2 |} \rangle &= \int\limits_{-\infty}^{+\infty} \! \diff \mathbf{r}_1 \diff \mathbf{r}_2 \; \psi_{T1}^* \; \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 |} \; \psi_{T1} \notag \\
     &= \int\limits_{-\infty}^{+\infty} \! \diff \mathbf{r}_1 \diff \mathbf{r}_2 \; \exp\left[ -\alpha \left( r_1^2 + r_2^2 \right) \right] \frac{1}{|\mathbf{r}_1 - \mathbf{r}_2 |}.
     \label{eq:exp_corr_energy}
 \end{align}
 
-Variational Monte Carlo is applied to find the expectation value for the Hamiltonian operator for the wave functions $\psi_{T1}$ and $\psi_{T2}$. 
+Variational Monte Carlo is applied to find the expectation value of energy for the wave functions $\psi_{T1}$ and $\psi_{T2}$. 
 
 \subsection{Gaussian quadrature}
 Gaussian quadrature differs from other quadrature methods, or methods of numerical integration, in the way the way the weights $w_i$ and integration points $x_i$ are chosen in the approximation
@@ -188,7 +207,7 @@ To determine the weights $w_i$, a closer look on the polynomial representation o
 \end{equation}
 where $L_N(x)$ is the chosen orthogonal polynomial giving the basis for the function space (for a given range of $x$). As $P_{N-1}(x)$ is orthogonal to $L_N(x)$ (the differences in order $N-1$ and $N$ lead to the product being zero, from eqs.~(5.10, 5.14) in \cite{MHJ:2013}), the integral can be written
 \[ \int f(x) \diff x \approx \int Q_{N-1}(x) \diff x = 2 \sum_{i=0}^{N-1} \left( L^{-1} \right)_{0i} P_{2N-1}(x_i) \]
-(from eqs.~(5.15, 5.16, 5,17) in \cite{MHJ:2013}) where the weigths are determined as $w_i = 2 \left( L^{-1} \right)_{0i}$.
+(from eqs.~(5.15, 5.16, 5,17) in \cite{MHJ:2013}) where the weights are determined as $w_i = 2 \left( L^{-1} \right)_{0i}$.
 
 Table (\ref{tab:polys}) summarises possible weight functions, orthogonality ranges and orthogonal polynomials (from \cite{MHJ:2013}).
 
@@ -209,10 +228,142 @@ Table (\ref{tab:polys}) summarises possible weight functions, orthogonality rang
 \end{table}
 
 \subsection{Monte Carlo methods}
-A 
+To calculate the expectation value of an operator using Monte Carlo methods, the integrals of eq.~(\ref{eq:observable_final}) will be approximated as a sum of function evaluations at random locations.
 
+In this project there will be three different approaches to the method of determining the random locations, \textit{(i)} a \textbf{brute force} approach, \textit{(ii)} the \textbf{importance sampling} approach, and \textit{(iii)} the \textbf{Metropolis} algorithm approach. The aim of all methods are to produce results where the variance is minimised.
+
+In Monte Carlo methods, the integral of a function $f(x)$ is approximated as the mean value over a given range, 
+\begin{equation}
+    I = \int f(x) \diff x \approx \langle f \rangle = \frac{1}{N} \sum_i f(x_i) p(x_i)
+    \label{eq:integraldef}
+\end{equation}
+where $p(x_i)$ is a given \textit{probability mass function}, or \textit{``pmf''} where $p(x_i)/N \in [0,1]$. For continuous random variables, there exist \textit{probability density functions} or ``\textit{pdf}''. Examples of pdfs are the uniform distribution, the standard distribution and the gamma distribution, each related to the nature of different events. For discrete random variables, the pdf is denoted a \textit{probability mass function}, or ``\textit{pmf}''.
+
+It was shown that the variance for the determinate states of an observable~$\mathbf{O}$ was zero using the formula
+\begin{equation}
+    \sigma^2 = \langle O^2 \rangle - \langle O \rangle^2
+    \label{eq:shortcut}
+\end{equation}
+which is a shortcut formula that can be derived from the definition \cite{Devore:2007} of the variance of a random variable $O$:
+\begin{equation}
+    V(O) = \sigma^2 = \sum_i \left( x_i-\mu \right)^2 p(x_i) = \langle \left( O - \mu \right)^2 \rangle
+    \label{eq:variancedef}
+\end{equation}
+where the pmf was assumed normalised, that is $\sum_i p(x_i) = 1$, and the mean was denoted $\mu$,
+\begin{equation}
+    \mu \equiv \langle O \rangle.
+    \label{eq:mean}
+\end{equation}
+
+
+\subsubsection{Brute force Monte Carlo}
+The brute force Monte Carlo method consists of choosing a uniform pmf, making all random variables equally likely, making the (unnormalised) pmf~$p(x_i) = 1$.
+
+A $k$-dimensional integral can then be evaluated the following way:
+\begin{enumerate}
+    \item Determine boundaries $[a,b]$: these give the range over which the integral will be evaluated, for a higher dimensional integral the boundaries will span a hypercube. 
+    \item Calculate $N$ random numbers $r_i \in [0,1)$\footnote{The GNU Scientific Library was used to produce random numbers, the function \texttt{gsl\_rng\_uniform} returns a number $[0,1)$ from an uniform distribution.} for $k$ dimensions, these will be mapped to the boundaries $[a,b]$ using the formula $x_i = a + (b - a) r_i$ for any number $x_i$.
+        \begin{itemize}
+            \item This change of variables $r_j \to x_j$ where $j \in [1,k]$ denotes dimension, requires a multiplication of the sum with the Jacobian,
+                \[ J = |(b - a)|^k \]
+            for a $k$-dimensional hypercube.
+        \end{itemize}
+    \item Calculate $f(x_1, x_2, \dots, x_k) = f(\mathbf{x})$ at the $N$ given points $\mathbf{x}_i$. 
+    \item Sum over all $N$ function values and also sum the function values squared.
+    \item The integral is given as $I = J/N \sum_i f(\mathbf{x}_i)$. The standard deviation is found as
+        \[ \sigma = J \sqrt{ \frac{1}{N}\left( \sum_i\left( \frac{f(\mathbf{x}_i)^2}{N} \right) - \left( \sum_i \frac{f(\mathbf{x}_i)}{N} \right)^2   \right).   } \]
+\end{enumerate}
+
+\subsubsection{Importance sampling Monte Carlo}
+The name of this method denotes that the most relevant locations $\mathbf{x}_i$ are used for function value sampling. This can be done by choosing a pmf $p(x_i)$ that matches the function that is to be sampled.
+
+To calculate the expectation value of the correlation energy $\langle 1/|\mathbf{r}_1 - \mathbf{r}_2| \rangle$, it should be noted that the wave function is a product of two exponentials, each representing an electron. In the same way that the weight function was chosen for Gaussian quadrature, the pmf should be chosen to have an exponential term. The standard distribution is thus a good candidate, with pdf \cite{Devore:2007}:
+\begin{equation}
+    p(x; \mu, \sigma) = \frac{1}{\sqrt{2\pi} \sigma} e^{-\left( x-\mu \right)^2/\left( 2\sigma^2 \right)}
+    \label{eq:standarddist}
+\end{equation}
+where $\sigma$ denotes standard deviation and $\mu$ denotes mean. To calculate the integral, values from this distribution can be used to sample the function values. Denoting the standard distribution $p(s)$ where $s$ is a normally distributed number, a function sampling can be done as
+\[ I = \int_{a'}^{b'} f(s) \diff s \]
+which can be done using the equality relation between probabilities,
+\[ p(s) \diff s = p(x) \diff x \]
+where $p(x)$ represents the uniform pdf with $p(x) = 1$, making the integral
+\[ I = \int_{x(a')}^{x(b')} f(s(x)) \frac{p(x) \diff x}{p(s(x))} = \int_{x(a)}^{x(b)} \frac{f(s(x))}{p(s(x))} \diff x. \]
+
+If the function that is to be evaluated resembles the pdf, 
+\[ f(s(x)) = p(s(x)) g(s(x)) \]
+the above rewrite would make it possible to only evaluate $g(s(x))$ instead of the full function $f(s(x))$.
+
+\subsubsection{Metropolis algorithm and variational Monte Carlo}
+    The Metropolis algorithm is the foundation of the variational Monte Carlo method, providing the optimal pdf for a system using a comparison between the probability for two states, the old and the proposed new. If the ratio between these is larger than a given threshold, the new state will be accepted. Otherwise, the state is rejected, and a new proposed state is compared to the current one.
+
+    The method of proposing states is done using random numbers. A random initial state is generated, and the probability of being in that state (for a quantum mechanical system, this probability is the wave function squared; $|\psi^* \psi|$) is calculated. A random move is proposed, and the probability of being in that state is calculated. The ratio between the proposed and the current state must be larger than a random number $[0,1]$ to be accepted. This way, the most relevant states are accounted for. 
+
+    For a quantum mechanical system, the states are calculated using trial wave functions, wave functions that have the properties of systems that are hard or impossible to describe analytically. In this project, two trial wave functions have been proposed, one describing the superposition of two particles' wave functions, $\psi_{T1}$, and one with an extra exponential term resembling the interaction between the two electrons that can be expressed in the wave function and not only the potential, $\psi_{T2}$.
+
+    The outline for the variational part is to calculate the expectation values of energy, $\langle E \rangle = \langle H \rangle$ for $\psi_{T1}$ while varying $\alpha$. The most likely state is the state where the expectation value of energy is minimised, and for an exact wave function, the variance will become zero, as shown earlier in the text. The next step is to use the $\alpha$ that minimises $\langle E \rangle$ in $\psi_{T2}$ and vary $\beta$. Again, when the minimum is found, $\alpha$ can be varied again with $\beta$ fixed. This procedure is repeated until no lower $\langle E \rangle$ can be procured.
+
+    In order to calculate $\langle E \rangle$, a new operator is introduced \cite{MHJ:2013};
+    \begin{equation}
+        \hat{\mathbf{E}}_L (\mathbf{r}_1, \mathbf{r}_2; \alpha) = \frac{1}{\psi_T\left( \mathbf{r}_1, \mathbf{r}_2; \alpha \right)} \hat{\mathbf{H}} \psi_T\left( \mathbf{r}_1, \mathbf{r}_2; \alpha \right)
+        \label{eq:locerg}
+    \end{equation}
+    named the \textit{local energy} operator. In combination with the probability function $P\left( \mathbf{r}_1, \mathbf{r}_2; \alpha \right)$;
+    \begin{equation}
+        P\left( \mathbf{r}_1, \mathbf{r}_2; \alpha \right) = \frac{|\psi_T\left( \mathbf{r}_1, \mathbf{r}_2; \alpha \right)|^2}{\int |\psi(\mathbf{r}_1, \mathbf{r}_2; \alpha)|^2 \diff \mathbf{r}_1 \diff \mathbf{r}_2}
+    \label{eq:probfunc}
+    \end{equation}
+    the expectation value of the local energy can be written
+    \begin{equation}
+        \langle E_L(\alpha) \rangle = \int P(\mathbf{r}_1, \mathbf{r}_2; \alpha) \hat{\mathbf{E}}_L\left( \mathbf{r}_1, \mathbf{r}_2; \alpha \right) \diff \mathbf{r}_1 \diff \mathbf{r}_2.
+        \label{eq:expval_locerg}
+    \end{equation}
+
+    The variational Monte Carlo algorithm is thus:
+    \begin{enumerate}
+        \item Initial conditions: fix step length \texttt{xstep}, number of cycles $N$, number of variations, $\alpha$- and $\beta$-variational parameters.
+    \item Initiate a random trial location $\mathbf{R}_0 = \{R_{0,0}, R_{0,1}, \dots, R_{0,k-1}\}$.
+        \item Calculate the wave function squared for this location.
+        \item Initiate a random number \texttt{randno2}.
+        \item Choose a random coordinate \texttt{randcord}$=[0,k-1]$ where $k$ is the dimension of the integral, and change the location in this coordinate,
+            \[ R_{\text{\texttt{randcord}}}' =  R_{\text{\texttt{randcord}}} + \text{\texttt{randno2}} * \text{\texttt{xstep}} \]
+        \item Calculate the wave function squared for this proposed location, and find the ratio of new to old wave function squared,
+            \[ \rm \text{\texttt{ratio}} = \frac{\text{\texttt{psisq}}}{\text{\texttt{psisq\_initial}}} \]
+            and compare this to a random number \texttt{randno3} $\in [0,1)$
+                \begin{itemize}
+                    \item If the ratio is larger than \texttt{randno3}, move to trial position and update counter $n$,
+                    \item If the ratio is smaller than \texttt{randno3}, go to step 2 and start over.
+                \end{itemize}
+        \item When $n=N-1$, all positions have been found. These form the pool from which $\psi_T$ can be sampled. Calculate the local energy, 
+            \[ E_L = -\frac{1}{2\psi_T} \nabla^2 \psi_T + V \]
+            and variance.
+        \item Repeat cycle for another variation of $\alpha$ or $\beta$.
+    \end{enumerate}
+
+
+\clearpage
 \section{Results}
-\subsection{Gauss-Legendre quadrature}
+\subsection{Gaussian quadrature}
+Gaussian quadrature was used to estimate the correlation energy $I = \langle 1/|\mathbf{r}_1 - \mathbf{r}_2| \rangle$ for two electrons in a harmonic oscillator potential well.
+
+The first attempted method was Gaussian quadrature using orthogonal Legendre polynomials in the range $x\in[-5,5]$, the range over which the wave function in one dimension was reduced to zero in the limits. The integration results are given in tab.~(\ref{tab:1_gauleg}) and shows that the integral approached a limit $I_{\rm lim} \approx 25$. 
+
+The second attempted method was Gaussian quadrature using Hermite polynomials as the orthogonal basis for functions working on $x\in (-\infty,+\infty)$. The associated weighting function made it possible to factor out the exponential terms in the expression for the expected correlation energy, eq.~(\ref{eq:exp_corr_energy}). The results are given in tab.~(\ref{tab:2_gauhermite}) where the expectation value approaches the limit for smaller $N$ than in the case where Gauss-Legendre quadrature was used. The limit is $I_{\rm lim} \approx 25$.
+
+\subsection{Monte Carlo: correlation energy}
+Brute force Monte Carlo sampling and importance sampling was used to solve the integral giving the expectation value of the correlation energy for two electrons in a harmonic oscillator potential well.
+
+The brute force sampling method required a specification of the integration limits, which were set to be $\pm5.0$. The Jacobi determinant was thus $|5-(-5)|^6$. The results are given in tab.~(\ref{tab:4_MC-brute}), showing that the integral approaches $I_{\rm lim} \approx 25$ for large $N$. The wall (real-life) time spent is lower than for the Gauss-Legendre quadrature case with $N=128$ single dimensional integration points. The standard deviations decreased with increasing $N$. 
+
+The results from importance sampling method are given in tab.~(\ref{tab:5_MC-importance}). To calculate the integral, the integration limits did not have to be specified as random numbers from a standard distribution were used to evaluate the integrand. Following \cite{MHJ:2013}, the Jacobian is $\pi^3$. The integral approaches $I_{\rm lim} = 24.73$ and has standard deviations two magnitudes lower than the results from the brute force Monte Carlo samplings. The wall time elapsed is a factor of ten larger than for the brute force Monte Carlo samplings.
+
+\subsection{Variational Monte Carlo}
+The variational Monte Carlo strategy outlined in \textit{Methods} was applied to analyse the expectation value of the local energy $\langle E \rangle$ for the two trial wave functions $\psi_{T1}$ and $\psi_{T2}$. 
+
+In fig.~(\ref{fig:2_T1_E}), the expectation value of the local energy is plotted against the variational parameter $\alpha$ for $\psi_{T1}$. Two different runs are compared, one with $N=2^{17}$ Monte Carlo samplings (solid blue line), and one with $N=2^{24}$ Monte Carlo samplings (dashed red line). The variational minimum is found to be $\langle E \rangle = 2.2307$ at $\alpha = -0.96$. The standard deviations are plotted logarithmically in fig.~(\ref{fig:2_T1_sigma}) showing that the run with $N=2^{24}$ has deviations one order of magnitudes lower than the run with $N=2^{17}$. A positive symmetric case of the minimum was found at $\alpha = +0.96$ with $\langle E \rangle = 2.2314$, see fig.~(\ref{fig:XX_T1_E_plus}). 
+
+When the variational minimum had been determined for $\psi_{T1}$, the given $\alpha$ was used in $\psi_{T2}$ where $\beta$ was varied, see fig.~(\ref{fig:5_T2_E}). Two runs with different numbers of Monte Carlo samplings are plotted, $N=2^{17}, 2^{20}$. The plot shows some periodicity in the data, with common variational minimum for the expectation value of the local energy $\langle E \rangle$ at $\beta = 0.10$. The standard deviations for the samplings are shown in fig.~(\ref{fig:6_T2_sigma}), where the samplings with $N=2^{20}$ have lower deviations than the samplings with $N=2^{17}$.
+
+Using the variational minimum $\beta = 0.10$, this was held fixed and $\alpha$ was varied in $\psi_{T2}$, see fig.~(\ref{fig:7_comp_E}) where the expectation value of the local energy for $\psi_{T2}$ is plotted against the expectation value of the local energy for $\psi_{T1}$. A variational minimum was found at $\alpha = -1.0$ with $\langle E \rangle = 2.0699$. Further variations did not succeed at decreasing the expectation value of the local energy.
 
 \begin{table}
     \centering
@@ -228,8 +379,8 @@ A
         128 &   24.6569 \\
         \hline
     \end{tabular}
-    \label{tab:<+label+>}
-\end{table}<++>
+    \label{tab:1_gauleg}
+\end{table}
 
 \begin{table}
     \centering
@@ -245,12 +396,8 @@ A
         128 &   24.5251 \\
         \hline
     \end{tabular}
-    \label{tab:<+label+>}
-\end{table}<++>
-
-\subsection{Monte Carlo}
-
-\subsubsection{Brute force}
+    \label{tab:2_gauhermite}
+\end{table}
 
 \begin{table}
     \centering
@@ -259,12 +406,12 @@ A
         \hline
         $N$         &   Results     & Std.dev $\sigma$  & Wall time elapsed  \\
         \hline
-        $2^{22}$    & 24.3568145555 & 1.1251229631   & 1.603s \\
-        $2^{23}$    & 24.459612255  & 0.948967998187 & 3.14832s \\
-        $2^{28}$    & 24.823832143  & 0.172828762223 & 92.1901s \\
+        $2^{22}$    & 24.35681  & 1.125   & 1.603s \\
+        $2^{23}$    & 24.45961  & 0.9490  & 3.14832s \\
+        $2^{28}$    & 24.82383  & 0.1728  & 92.1901s \\
         \hline
     \end{tabular}
-    \label{tab:res_bruteforceMC}
+    \label{tab:4_MC-brute}
 \end{table}
 \begin{table}
     \centering
@@ -273,19 +420,18 @@ A
         \hline
         $N$         &   Results     & Std.dev $\sigma$ & Wall time elapsed  \\
         \hline
-        $2^{22}$    & 24.7308400577 & 0.00903293421986 & 14.8966s \\
-        $2^{23}$    & 24.7369331549 & 0.00644995146458 & 30.1007s \\
-        $2^{28}$    & 24.734050648  & 0.00113551436761 & 1033.96s \\
+        $2^{22}$    & 24.73084 & $9.033 \times 10^{-3}$ & 14.8966s \\
+        $2^{23}$    & 24.73693 & $6.445 \times 10^{-3}$  & 30.1007s \\
+        $2^{28}$    & 24.73405  & $1.136 \times 10^{-3}$  & 1033.96s \\
         \hline
     \end{tabular}
-    \label{tab:res_importanceMC}
+    \label{tab:5_MC-importance}
 \end{table}
 
-\subsection{Variational Monte Carlo}
 \begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\columnwidth]{fig/fig1_T1_E.pdf}
-    \caption{The expectation value for the energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the wave function $\psi_{T1}$. The solid blue line represents $N=2^{17}$ Monte Carlo cycles, and the dashed red line represents $N=2^{24}$ Monte Carlo cycles. See fig.~(\ref{fig:2_T1_sigma}) for a plot of the corresponding standard deviations. The minimum for the expectation value is $\langle E \rangle = 2.2307$ at $\alpha = -0.96$ for $N=2^{24}$. The results are symmetric around the $y$-axis (see fig.~(\ref{fig:XX_T1_E_plus})), with a minimum $\langle E \rangle = 2.2314$ at $\alpha = +0.96$ (for $N=2^{24}$).}
+    \caption{The expectation value of energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the wave function $\psi_{T1}$. The solid blue line represents $N=2^{17}$ Monte Carlo cycles, and the dashed red line represents $N=2^{24}$ Monte Carlo cycles. See fig.~(\ref{fig:2_T1_sigma}) for a plot of the corresponding standard deviations. The minimum for the expectation value is $\langle E \rangle = 2.2307$ at $\alpha = -0.96$ for $N=2^{24}$. The results are symmetric around the $y$-axis (see fig.~(\ref{fig:XX_T1_E_plus})), with a minimum $\langle E \rangle = 2.2314$ at $\alpha = +0.96$ (for $N=2^{24}$).}
     \label{fig:2_T1_E}
 \end{figure}
 
@@ -299,9 +445,9 @@ A
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\columnwidth]{fig/figXX_T1_E_plus.pdf}
-    \caption{The expectation value for the energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the trial wave function $\psi_{T1}$ with $N=2^{17}, 2^{24}$ Monte Carlo samplings. The minimum for $N=2^{24}$ is $\langle E \rangle = 2.2314$ at $\alpha=+0.96$. See fig.~(\ref{fig:2_T1_E}) for a plot showing the negative symmetric case with standard deviations in fig.~(\ref{fig:2_T1_sigma}). This figure was used to produce the cover illustration. }
+    \caption{The expectation value of energy, $\langle E \rangle$ plotted against the variational parameter $\alpha$ in the trial wave function $\psi_{T1}$ with $N=2^{17}, 2^{24}$ Monte Carlo samplings. The minimum for $N=2^{24}$ is $\langle E \rangle = 2.2314$ at $\alpha=+0.96$. See fig.~(\ref{fig:2_T1_E}) for a plot showing the negative symmetric case with standard deviations in fig.~(\ref{fig:2_T1_sigma}). This figure was used to produce the cover illustration. }
     \label{fig:XX_T1_E_plus}
-\end{figure}<++>
+\end{figure}
 
 \begin{figure}[htpb]
     \centering
@@ -315,15 +461,70 @@ A
     \includegraphics[width=0.8\columnwidth]{fig/fig6_T2_sigma.pdf}
     \caption{Standard deviations for the local energies used to produce the expectation value of the energy for $\psi_{T2}$ shown in fig.~(\ref{fig:4_T2_E}), where $N=2^{17}, 2^{20}$. Compared to the standard deviations shown in fig.~(\ref{fig:2_T1_sigma}), the magnitude of the standard deviations for the case $N=2^{20}$ is smaller than for $N=2^{17}$, and larger than for $N=2^{24}$. }
     \label{fig:6_T2_sigma}
-\end{figure}<++>
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{fig/fig7_comp_E.pdf}
+    \caption{Comparison between the expectation value of energies for the wave functions $\psi_{T1}$ (computed with $N=2^{24}$ Monte Carlo samplings) and $\psi_{T2}$ (computed with $N=2^{20}$ Monte Carlo samplings) with $\beta=0.1$, see the variational minimum in fig.~(\ref{fig:5_T2_E}). This plot suggests that a slight modification is required in the variational parameter $\alpha$, where a new variational minimum can be found at $\alpha=-1.0$, yielding the expectation value $\langle E \rangle = 2.0699$.}
+    \label{fig:7_comp_E}
+\end{figure}
 
 \section{Discussion and conclusion}
+\subsection{Correlation energy}
+The correlation energy was found using Gaussian quadrature and Monte Carlo methods. It was shown that the results were reproducible for the different methods, and that the integrals approached the approximately same limits.
 
+The methods used differ, however, in implementation complexity -- whereas the Gaussian quadrature methods required the initialisation of the integration points and weights, the Monte Carlo methods required specification of Jacobians that are not trivially found for any change of coordinates. The standard deviation and the integration result also had to be multiplied by the Jacobian, making it a crucial component when determining the answers. 
+
+There also is a strong similarity between Gaussian quadrature and Monte Carlo integration. Both classes of methods use the sum as the numerical approximation to the integral and use the weights (Gaussian quadrature) or probabilities (Monte Carlo) to determine the multidimensional analogy to the area under the graph. Both methods provided a way of reducing the complexity of the integrand, using different orthogonal polynomials (with corresponding weight functions) or by using a pool of numbers resembling the function to be evaluated.
+
+The advantage of using Monte Carlo methods for multidimensional integrals is distinct in terms of efficiency: the time and memory used to produce results equivalent to those of Gaussian quadrature, is magnitudes of order smaller.
+
+\subsection{Variational Monte Carlo}
+The variational Monte Carlo approach to find the expectation value of the local energy for the two trial wave functions yielded a variational minimum for $\beta = 0.10$ and $\alpha=-1.00$, making the trial wave function $\psi_{T2}$ become
+
+\begin{equation}
+    \psi\left( \mathbf{r}_1, \mathbf{r}_2 \right) = \exp\left[ \frac{r_1^2 + r_2^2}{2} \right] \exp\left[ \frac{|\mathbf{r}_1 - \mathbf{r}_2|}{2 \left( 1 + 0.10 |\mathbf{r}_1 - \mathbf{r}_2| \right)} \right].
+    \label{eq:final}
+\end{equation}
+
+The results for the trial wave function $\psi_{T1}$ gives that the expectation value of the local energy behaves more smoothly for increased $N$, and at the same time, increasing $N$ reduces the standard deviations. The variational minimum with $\alpha < 0$ was chosen, as this yielded a lower expectation value of local energy.
+
+When $\alpha$ was held fixed, and $\beta$ varied using $\psi_{T2}$, the results shows a periodicity in the results. The variational minimum for $\beta$ was chosen to be $\beta = 0.10$ as this was the location where both curves for $N$ had minima. 
+
+The periodicity was extensively debugged using Valgrind, and the program was rewritten twice. The current approach is to use a \texttt{while}-loop and increase $n$ for each accepted move: a possibility was to use a \texttt{for}-loop where the positions only were updated for accepted ratios. However, this method yielded a much higher expectation value of the local energy, and was thus abandoned. There also were challenges with the OpenMP memory management for very large numbers of Monte Carlo samples $N$. Comparison between a four core laptop and a 64 core computational node (\texttt{nekkar.uio.no}) should in terms of available computing resources be in favour of the node, but the laptop uses considerably less wall time doing the same operations. This indicates that future work using OpenMP must be more carefully planned and debugged. 
+
+Several attempts were made to find the analytic expressions for the local energies of the trial wave functions. The local energies can be found as
+\[ E_L = -\frac{1}{2 \psi_T} \nabla^2 \psi_T + V \]
+which for $\psi_{T1}$ yielded an analytic expression
+\[E_{L, T1} = \alpha^2 \left[ \alpha^2 \left( r_1^2 + r_2^2 \right) - 6 \right] + \frac{1}{2}\left( r_1^2 + r_2^2 \right) + \frac{1}{r_{12}} \]
+where $r_{12} \equiv |\mathbf{r}_1 - \mathbf{r}_2|$.
+
+For $\psi_{T2}$, the derivation in Cartesian coordinates required repeatedly uses of the product rule for both $x_i$ where $x_i = \left\{ x_1, y_1, z_1 \right\}$ and $x_j$ where $x_j = \left\{ x_2, y_2, z_2 \right\}$, where
+\[ \frac{\partial r_{12}}{\partial x_i} = r_{12}^{-1} \left( x_i - x_j \right) \]
+and yielded results on the form
+\begin{align*}
+    \frac{\partial^2 \psi_{T2}}{\partial x_i^2} &= \psi' G + \psi G' \\
+    &= \left( \psi G \right)G + \psi G' \\
+    &= \psi \left[ G^2 + G' \right]
+\end{align*}
+where 
+\[ G = \left( -\alpha^2 x_i \right) + \left( x_i - x_j \right)\left( 2\left( 1+ \beta r_{12} \right) \right)^{-1} \left\{ \frac{1}{r_{12} }- \frac{2\beta}{2\left( 1+ \beta r_{12} \right)} \right\}. \]
+
+The initial solution strategy of the variational Monte Carlo part, was to deduce the analytic expressions and use them, but this attempt failed due to error in the calculations yielding non-consistent local energies. The results shown here are thus produced using numerical evaluations of second derivatives to find the kinetic term of the Hamiltonian operator. However, after advice, could future attempts at deriving the analytic expressions use the \textit{linear Pad\'e-Jastrow} form as guide to solve similar quantum mechanical cases.
+
+This project has shown that an ensemble of numerical methods can be used to calculate the expectation value of an observable. The choice of method is closely related to the problem at hand, and the right choice of method can reduce both the computational complexity and the variance of the problem.
 
 
 \bibliography{referanser}
 \bibliographystyle{plain}
 
+\clearpage
+\appendix
+\section{Program listings}
+See attached code: \texttt{mainMonteCarloVMC1.cpp}. Other resources are available under the anonymous Github user \texttt{Candidate105}, \url{https://github.com/Candidate105/proj5-VMC/tree/master}.
+
+%\lstinputlisting[language=c++]{../mainMonteCarloVMC1.cpp}
 
 \end{document}
 

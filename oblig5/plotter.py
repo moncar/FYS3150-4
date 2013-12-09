@@ -66,8 +66,10 @@ linestylesX = ['kx', 'yx', 'bx', 'kx', 'rx', 'yx', 'cx', 'bx', 'gx']
 
 ax1.plot(data1[0,:], data1[1,:], linestyles[1+1])
 ax1.plot(data2[0,:], data2[1,:], linestyles[1+3])
-ax1labels.append(r'$N = 2^{17}$')
-ax1labels.append(r'$N = 2^{24}$')
+ax1labels.append(r'$N=2^{17}$')
+ax1labels.append(r'$N=2^{19}$')
+ax1labels.append(r'$\psi_{T1}$')
+ax1labels.append(r'$\psi_{T2}$: $\beta=0.1$')
 for i in xrange(1, nK+1):
 #    ax1.plot(data1[0,:], linestylesX[i])
 #    ax1.hist(data1[0,:])
@@ -107,7 +109,7 @@ ax1.set_ylabel(r'$\langle E \rangle$ ', fontsize=18)
 #        ('Rel. error, N=%g points' % (N3,))] )
 
 box = ax1.get_position()
-ax1.set_position([box.x0, box.y0, box.width * 0.80, box.height])
+ax1.set_position([box.x0, box.y0, box.width * 0.77, box.height])
 ax1.legend(ax1labels, loc='center left', bbox_to_anchor=(1, 0.5))
 plt.setp(plt.gca().get_legend().get_texts(), fontsize='18')
 #axE.set_position([box.x0, box.y0, box.width * 0.8, box.height])
